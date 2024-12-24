@@ -11,6 +11,7 @@ function getLoggedInUser() {
 
 // Render Sign-In page
 function showSignIn() {
+    console.log("Rendering Sign-In Page");
     const content = document.getElementById('content');
     content.innerHTML = `
         <h1>Sign In</h1>
@@ -43,6 +44,7 @@ function showSignIn() {
 
 // Render Sign-Up page
 function showSignUp() {
+    console.log("Rendering Sign-Up Page");
     const content = document.getElementById('content');
     content.innerHTML = `
         <h1>Sign Up</h1>
@@ -69,13 +71,14 @@ function showSignUp() {
             localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('loggedIn', 'true');
             localStorage.setItem('currentUser', JSON.stringify({ email: newEmail }));
-            showSignIn();
+            showDashboard();
         }
     });
 }
 
 // Render Dashboard with Todo Bot
 function showDashboard() {
+    console.log("Rendering Dashboard");
     if (!isLoggedIn()) {
         showSignIn();
         return;
@@ -91,6 +94,7 @@ function showDashboard() {
             <input type="text" id="taskInput" required>
             <button type="submit">Send</button>
         </form>
+        <button id="startVoice">Start Voice Command</button>
         <h2>Your Tasks</h2>
         <ul id="taskList"></ul>
     `;
@@ -102,11 +106,17 @@ function showDashboard() {
         handleUserInput(taskInput);
     });
 
+    // Voice command button
+    document.getElementById('startVoice').addEventListener('click', function() {
+        startVoiceRecognition();
+    });
+
     displayTasks();
 }
 
 // Handle the user input to add/delete tasks
 function handleUserInput(input) {
+    console.log(`Handling user input: ${input}`);
     if (input.includes('add task')) {
         const taskDescription = input.replace('add task', '').trim();
         if (taskDescription) {
@@ -138,6 +148,7 @@ function handleUserInput(input) {
 
 // Update the chatbox with bot's response
 function updateChatBox(message) {
+    console.log(`Updating chatbox with message: ${message}`);
     const chatBox = document.getElementById('chatBox');
     const messageDiv = document.createElement('div');
     messageDiv.textContent = `Bot: ${message}`;
@@ -147,6 +158,7 @@ function updateChatBox(message) {
 
 // Add a new task to the list
 function addTask(description) {
+    console.log(`Adding task: ${description}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     tasks.push({ description, done: false });
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -155,6 +167,7 @@ function addTask(description) {
 
 // Display tasks in the task list
 function displayTasks() {
+    console.log("Displaying tasks");
     const taskList = document.getElementById('taskList');
     taskList.innerHTML = '';
 
@@ -173,6 +186,7 @@ function displayTasks() {
 
 // Mark a task as done
 function markTaskAsDone(index) {
+    console.log(`Marking task as done: ${index}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     if (tasks[index]) {
         tasks[index].done = true;
@@ -183,6 +197,7 @@ function markTaskAsDone(index) {
 
 // Delete a task
 function deleteTask(index) {
+    console.log(`Deleting task: ${index}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     tasks.splice(index, 1);
     localStorage.setItem('tasks', JSON.stringify(tasks));
@@ -190,8 +205,44 @@ function deleteTask(index) {
 }
 
 // Initialize the app
+console.log("Initializing app");
 if (isLoggedIn()) {
     showDashboard();
 } else {
     showSignIn();
+}
+
+// Start Speech Recognition
+function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition.');
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function() {
+        console.log('Voice recognition started. Try speaking into the microphone.');
+    };
+
+    recognition.onresult = function(event) {
+        if (event.results.length > 0) {
+            const voiceInput = event.results[0][0].transcript.toLowerCase();
+            console.log(`Voice Input: ${voiceInput}`);
+            handleUserInput(voiceInput);
+        }
+    };
+
+    recognition.onerror = function(event) {
+        console.error('Speech recognition error', event);
+    };
+
+    recognition.onend = function() {
+        console.log('Voice recognition ended.');
+    };
+
+    recognition.start();
 }
