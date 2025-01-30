@@ -15,11 +15,40 @@ function hashPassword(password) {
     return btoa(password); // Base64 encoding for demonstration purposes
 }
 
-// Render Sign-In page
+// Render Header
+function renderHeader() {
+    const header = document.createElement('header');
+    header.innerHTML = `
+        <div class="header-container">
+            <h1>Todo Bot App</h1>
+            <nav>
+                ${!isLoggedIn() ? `
+                    <a href="#" onclick="showSignIn()">Sign In</a>
+                    <a href="#" onclick="showSignUp()">Sign Up</a>
+                ` : `
+                    <button id="logoutButton" class="logout-button">🚪 Logout</button>
+                `}
+            </nav>
+        </div>
+    `;
+
+    // Add logout functionality if user is logged in
+    if (isLoggedIn()) {
+        header.querySelector('#logoutButton').addEventListener('click', function () {
+            logout();
+        });
+    }
+
+    return header;
+}
+
+// Render Sign-In Page
 function showSignIn() {
     console.log("Rendering Sign-In Page");
     const content = document.getElementById('content');
-    content.innerHTML = `
+    content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
         <div class="auth-container">
             <h1>Sign In</h1>
             <form id="signInForm">
@@ -51,11 +80,13 @@ function showSignIn() {
     });
 }
 
-// Render Sign-Up page
+// Render Sign-Up Page
 function showSignUp() {
     console.log("Rendering Sign-Up Page");
     const content = document.getElementById('content');
-    content.innerHTML = `
+    content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
         <div class="auth-container">
             <h1>Sign Up</h1>
             <form id="signUpForm">
@@ -87,7 +118,7 @@ function showSignUp() {
     });
 }
 
-// Render Dashboard with Todo Bot
+// Render Dashboard
 function showDashboard() {
     console.log("Rendering Dashboard");
     if (!isLoggedIn()) {
@@ -97,7 +128,9 @@ function showDashboard() {
 
     currentUser = getLoggedInUser();
     const content = document.getElementById('content');
-    content.innerHTML = `
+    content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
         <div class="dashboard-container">
             <h1>Welcome, ${currentUser.email}!</h1>
             <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
