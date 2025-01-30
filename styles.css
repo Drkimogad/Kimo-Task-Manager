@@ -22,6 +22,38 @@ a:hover {
     text-decoration: underline;
 }
 
+header {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 24px;
+}
+
+header nav {
+    display: flex;
+    gap: 10px;
+}
+
+header nav a, header nav button {
+    color: white;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+header nav a:hover, header nav button:hover {
+    text-decoration: underline;
+}
+
 button {
     background-color: #007bff;
     color: white;
