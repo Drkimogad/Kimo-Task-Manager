@@ -80,9 +80,8 @@ function showSignUp() {
         } else {
             users.push({ email: newEmail, password: hashPassword(newPassword) });
             localStorage.setItem('users', JSON.stringify(users));
-            localStorage.setItem('loggedIn', 'true');
-            localStorage.setItem('currentUser', JSON.stringify({ email: newEmail }));
-            showDashboard();
+            alert('Sign up successful! Please sign in.'); // Notify the user
+            showSignIn(); // Redirect to the sign-in page
         }
     });
 }
