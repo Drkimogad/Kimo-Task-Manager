@@ -1,63 +1,211 @@
-/* Basic Styles for Todo Bot */
+/* General Styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Arial', sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f9f9f9;
-}
-
-h1 {
-    text-align: center;
+    background-color: #f4f4f9;
     color: #333;
+    line-height: 1.6;
 }
 
-#content {
-    width: 80%;
-    margin: auto;
-}
-
-form {
-    display: flex;
-    flex-direction: column;
+h1, h2 {
+    color: #444;
     margin-bottom: 20px;
 }
 
-input[type="text"] {
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
+a {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 button {
-    padding: 10px;
-    background-color: #4CAF50;
+    background-color: #007bff;
     color: white;
     border: none;
+    padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #0056b3;
 }
 
-ul {
-    list-style-type: none;
+input[type="text"],
+input[type="email"],
+input[type="password"] {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+/* Auth Container */
+.auth-container {
+    max-width: 400px;
+    margin: 50px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.auth-container h1 {
+    margin-bottom: 20px;
+}
+
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+}
+
+.auth-container .error-message {
+    color: #ff4444;
+    margin-top: 10px;
+    font-size: 14px;
+}
+
+/* Dashboard Container */
+.dashboard-container {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dashboard-container h1 {
+    text-align: center;
+}
+
+/* Chat Container */
+.chat-container {
+    margin-bottom: 30px;
+}
+
+.chat-box {
+    height: 200px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    padding: 10px;
+    overflow-y: auto;
+    background-color: #fafafa;
+    margin-bottom: 10px;
+}
+
+.chat-box div {
+    margin-bottom: 10px;
+    padding: 5px;
+    background-color: #e9ecef;
+    border-radius: 5px;
+}
+
+/* Task Container */
+.task-container {
+    margin-top: 20px;
+}
+
+.task-container h2 {
+    margin-bottom: 15px;
+}
+
+.task-list {
+    list-style: none;
     padding: 0;
 }
 
 .task-item {
-    background-color: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     padding: 10px;
-    margin-bottom: 10px;
+    border: 1px solid #ddd;
     border-radius: 5px;
+    margin-bottom: 10px;
+    background-color: #fafafa;
+    transition: background-color 0.3s ease;
 }
 
-button.mark-done {
-    background-color: #8BC34A;
+.task-item:hover {
+    background-color: #f1f1f1;
 }
 
-button.delete {
-    background-color: #f44336;
+.task-description {
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.task-description.done {
+    text-decoration: line-through;
+    color: #888;
+}
+
+.task-item button {
+    margin-left: 10px;
+    font-size: 12px;
+    padding: 5px 10px;
+}
+
+.task-item button.mark-done {
+    background-color: #28a745;
+}
+
+.task-item button.mark-done:hover {
+    background-color: #218838;
+}
+
+.task-item button.delete {
+    background-color: #dc3545;
+}
+
+.task-item button.delete:hover {
+    background-color: #c82333;
+}
+
+/* Voice Command Button */
+.voice-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    padding: 10px;
+    margin-top: 10px;
+    background-color: #17a2b8;
+    font-size: 16px;
+}
+
+.voice-button:hover {
+    background-color: #138496;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container, .dashboard-container {
+        margin: 20px;
+        padding: 15px;
+    }
+
+    .chat-box {
+        height: 150px;
+    }
+
+    .task-item {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .task-item button {
+        margin: 5px 0;
+        width: 100%;
+    }
 }
