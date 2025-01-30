@@ -1,4 +1,5 @@
 let currentUser = null; // For keeping track of logged-in user
+let isDarkMode = false; // Track dark mode state
 
 // Helper functions for login state
 function isLoggedIn() {
@@ -80,8 +81,8 @@ function showSignUp() {
         } else {
             users.push({ email: newEmail, password: hashPassword(newPassword) });
             localStorage.setItem('users', JSON.stringify(users));
-            alert('Sign up successful! Please sign in.'); // Notify the user
-            showSignIn(); // Redirect to the sign-in page
+            alert('Sign up successful! Please sign in.');
+            showSignIn();
         }
     });
 }
@@ -99,6 +100,10 @@ function showDashboard() {
     content.innerHTML = `
         <div class="dashboard-container">
             <h1>Welcome, ${currentUser.email}!</h1>
+            <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
+            <div class="progress-bar">
+                <div id="progress" class="progress"></div>
+            </div>
             <div class="chat-container">
                 <div id="chatBox" class="chat-box"></div>
                 <form id="taskInputForm">
@@ -128,7 +133,14 @@ function showDashboard() {
         startVoiceRecognition();
     });
 
+    // Dark mode toggle
+    document.getElementById('toggleDarkMode').addEventListener('click', function () {
+        isDarkMode = !isDarkMode;
+        document.body.classList.toggle('dark-mode', isDarkMode);
+    });
+
     displayTasks();
+    updateProgressBar();
 }
 
 // Handle the user input to add/delete/update tasks
@@ -137,7 +149,10 @@ function handleUserInput(input) {
     if (input.includes('add task')) {
         const taskDescription = input.replace('add task', '').trim();
         if (taskDescription) {
-            addTask(taskDescription);
+            const category = input.includes('work') ? 'Work' : input.includes('personal') ? 'Personal' : 'Other';
+            const dueDate = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/)?.[0] || null; // Extract date from input
+            const priority = input.includes('high') ? 'High' : input.includes('medium') ? 'Medium' : 'Low';
+            addTask(taskDescription, category, dueDate, priority);
             updateChatBox(`Task "${taskDescription}" added.`);
         } else {
             updateChatBox('Please specify a task.');
@@ -174,12 +189,13 @@ function updateChatBox(message) {
 }
 
 // Add a new task to the list
-function addTask(description) {
+function addTask(description, category = 'Other', dueDate = null, priority = 'Medium') {
     console.log(`Adding task: ${description}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.push({ id: tasks.length + 1, description, done: false });
+    tasks.push({ id: tasks.length + 1, description, category, dueDate, priority, done: false });
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
+    updateProgressBar();
 }
 
 // Display tasks in the task list
@@ -193,7 +209,9 @@ function displayTasks() {
         const li = document.createElement('li');
         li.classList.add('task-item');
         li.innerHTML = `
-            <span class="task-description ${task.done ? 'done' : ''}">${task.description}</span>
+            <span class="task-description ${task.done ? 'done' : ''}">
+                ${task.description} (${task.category}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
+            </span>
             <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
             <button class="delete" onclick="deleteTask(${index})">Delete</button>
         `;
@@ -209,6 +227,7 @@ function markTaskAsDone(index) {
         tasks[index].done = !tasks[index].done; // Toggle done state
         localStorage.setItem('tasks', JSON.stringify(tasks));
         displayTasks();
+        updateProgressBar();
     }
 }
 
@@ -219,6 +238,15 @@ function deleteTask(index) {
     tasks.splice(index, 1);
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
+    updateProgressBar();
+}
+
+// Update progress bar
+function updateProgressBar() {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const completedTasks = tasks.filter(task => task.done).length;
+    const progress = (completedTasks / tasks.length) * 100 || 0;
+    document.getElementById('progress').style.width = `${progress}%`;
 }
 
 // Start Speech Recognition
