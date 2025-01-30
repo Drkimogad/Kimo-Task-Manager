@@ -9,35 +9,43 @@ function getLoggedInUser() {
     return JSON.parse(localStorage.getItem('currentUser'));
 }
 
+// Hash password (basic example, not production-ready)
+function hashPassword(password) {
+    return btoa(password); // Base64 encoding for demonstration purposes
+}
+
 // Render Sign-In page
 function showSignIn() {
     console.log("Rendering Sign-In Page");
     const content = document.getElementById('content');
     content.innerHTML = `
-        <h1>Sign In</h1>
-        <form id="signInForm">
-            <label for="email">Email:</label>
-            <input type="email" id="email" required>
-            <label for="password">Password:</label>
-            <input type="password" id="password" required>
-            <button type="submit">Sign In</button>
-        </form>
-        <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
+        <div class="auth-container">
+            <h1>Sign In</h1>
+            <form id="signInForm">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+                <button type="submit">Sign In</button>
+            </form>
+            <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
+            <p id="error-message" class="error-message"></p>
+        </div>
     `;
 
-    document.getElementById('signInForm').addEventListener('submit', function(event) {
+    document.getElementById('signInForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const email = document.getElementById('email').value;
         const password = document.getElementById('password').value;
         const users = JSON.parse(localStorage.getItem('users')) || [];
-        const user = users.find(user => user.email === email && user.password === password);
-        
+        const user = users.find(user => user.email === email && user.password === hashPassword(password));
+
         if (user) {
             localStorage.setItem('loggedIn', 'true');
             localStorage.setItem('currentUser', JSON.stringify(user));
             showDashboard();
         } else {
-            alert('Invalid credentials');
+            document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
         }
     });
 }
@@ -47,27 +55,30 @@ function showSignUp() {
     console.log("Rendering Sign-Up Page");
     const content = document.getElementById('content');
     content.innerHTML = `
-        <h1>Sign Up</h1>
-        <form id="signUpForm">
-            <label for="newEmail">Email:</label>
-            <input type="email" id="newEmail" required>
-            <label for="newPassword">Password:</label>
-            <input type="password" id="newPassword" required>
-            <button type="submit">Sign Up</button>
-        </form>
-        <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
+        <div class="auth-container">
+            <h1>Sign Up</h1>
+            <form id="signUpForm">
+                <label for="newEmail">Email:</label>
+                <input type="email" id="newEmail" required>
+                <label for="newPassword">Password:</label>
+                <input type="password" id="newPassword" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
+            <p id="error-message" class="error-message"></p>
+        </div>
     `;
 
-    document.getElementById('signUpForm').addEventListener('submit', function(event) {
+    document.getElementById('signUpForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const newEmail = document.getElementById('newEmail').value;
         const newPassword = document.getElementById('newPassword').value;
         const users = JSON.parse(localStorage.getItem('users')) || [];
 
         if (users.some(user => user.email === newEmail)) {
-            alert('Email already exists');
+            document.getElementById('error-message').textContent = 'Email already exists. Please use a different email.';
         } else {
-            users.push({ email: newEmail, password: newPassword });
+            users.push({ email: newEmail, password: hashPassword(newPassword) });
             localStorage.setItem('users', JSON.stringify(users));
             localStorage.setItem('loggedIn', 'true');
             localStorage.setItem('currentUser', JSON.stringify({ email: newEmail }));
@@ -87,34 +98,41 @@ function showDashboard() {
     currentUser = getLoggedInUser();
     const content = document.getElementById('content');
     content.innerHTML = `
-        <h1>Todo Bot</h1>
-        <div id="chatBox"></div>
-        <form id="taskInputForm">
-            <label for="taskInput">Ask me to add or delete a task:</label>
-            <input type="text" id="taskInput" required>
-            <button type="submit">Send</button>
-        </form>
-        <button id="startVoice">Start Voice Command</button>
-        <h2>Your Tasks</h2>
-        <ul id="taskList"></ul>
+        <div class="dashboard-container">
+            <h1>Welcome, ${currentUser.email}!</h1>
+            <div class="chat-container">
+                <div id="chatBox" class="chat-box"></div>
+                <form id="taskInputForm">
+                    <label for="taskInput">Ask me to add, delete, or update a task:</label>
+                    <input type="text" id="taskInput" required>
+                    <button type="submit">Send</button>
+                </form>
+                <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
+            </div>
+            <div class="task-container">
+                <h2>Your Tasks</h2>
+                <ul id="taskList"></ul>
+            </div>
+        </div>
     `;
 
     // Handle the task input and interaction with bot
-    document.getElementById('taskInputForm').addEventListener('submit', function(event) {
+    document.getElementById('taskInputForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const taskInput = document.getElementById('taskInput').value.toLowerCase();
         handleUserInput(taskInput);
+        document.getElementById('taskInput').value = ''; // Clear input field
     });
 
     // Voice command button
-    document.getElementById('startVoice').addEventListener('click', function() {
+    document.getElementById('startVoice').addEventListener('click', function () {
         startVoiceRecognition();
     });
 
     displayTasks();
 }
 
-// Handle the user input to add/delete tasks
+// Handle the user input to add/delete/update tasks
 function handleUserInput(input) {
     console.log(`Handling user input: ${input}`);
     if (input.includes('add task')) {
@@ -142,7 +160,7 @@ function handleUserInput(input) {
             updateChatBox('Please specify a valid task ID to mark as done.');
         }
     } else {
-        updateChatBox('Sorry, I didn\'t understand that.');
+        updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
     }
 }
 
@@ -160,7 +178,7 @@ function updateChatBox(message) {
 function addTask(description) {
     console.log(`Adding task: ${description}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.push({ description, done: false });
+    tasks.push({ id: tasks.length + 1, description, done: false });
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
 }
@@ -176,20 +194,20 @@ function displayTasks() {
         const li = document.createElement('li');
         li.classList.add('task-item');
         li.innerHTML = `
-            ${task.description} ${task.done ? '(Done)' : '(Pending)'}
-            <button class="mark-done" onclick="markTaskAsDone(${index})">Mark as Done</button>
+            <span class="task-description ${task.done ? 'done' : ''}">${task.description}</span>
+            <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
             <button class="delete" onclick="deleteTask(${index})">Delete</button>
         `;
         taskList.appendChild(li);
     });
 }
 
-// Mark a task as done
+// Mark a task as done or undo
 function markTaskAsDone(index) {
     console.log(`Marking task as done: ${index}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     if (tasks[index]) {
-        tasks[index].done = true;
+        tasks[index].done = !tasks[index].done; // Toggle done state
         localStorage.setItem('tasks', JSON.stringify(tasks));
         displayTasks();
     }
@@ -204,14 +222,6 @@ function deleteTask(index) {
     displayTasks();
 }
 
-// Initialize the app
-console.log("Initializing app");
-if (isLoggedIn()) {
-    showDashboard();
-} else {
-    showSignIn();
-}
-
 // Start Speech Recognition
 function startVoiceRecognition() {
     if (!('webkitSpeechRecognition' in window)) {
@@ -224,11 +234,11 @@ function startVoiceRecognition() {
     recognition.continuous = false;
     recognition.interimResults = false;
 
-    recognition.onstart = function() {
+    recognition.onstart = function () {
         console.log('Voice recognition started. Try speaking into the microphone.');
     };
 
-    recognition.onresult = function(event) {
+    recognition.onresult = function (event) {
         if (event.results.length > 0) {
             const voiceInput = event.results[0][0].transcript.toLowerCase();
             console.log(`Voice Input: ${voiceInput}`);
@@ -236,13 +246,21 @@ function startVoiceRecognition() {
         }
     };
 
-    recognition.onerror = function(event) {
+    recognition.onerror = function (event) {
         console.error('Speech recognition error', event);
     };
 
-    recognition.onend = function() {
+    recognition.onend = function () {
         console.log('Voice recognition ended.');
     };
 
     recognition.start();
+}
+
+// Initialize the app
+console.log("Initializing app");
+if (isLoggedIn()) {
+    showDashboard();
+} else {
+    showSignIn();
 }
