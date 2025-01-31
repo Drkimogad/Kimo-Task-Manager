@@ -57,7 +57,6 @@ function showSignIn() {
     console.log("Rendering Sign-In Page");
     const content = document.getElementById('content');
     content.innerHTML = ''; // Clear existing content
-    content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="auth-container">
             <h1>Kimo Task Manager</h1>
@@ -68,7 +67,6 @@ function showSignIn() {
                 <input type="password" id="password" required>
                 <button type="submit">Sign In</button>
             </form>
-            <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
             <p id="error-message" class="error-message"></p>
         </div>
     `;
@@ -95,7 +93,6 @@ function showSignUp() {
     console.log("Rendering Sign-Up Page");
     const content = document.getElementById('content');
     content.innerHTML = ''; // Clear existing content
-    content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="auth-container">
             <h1>Kimo Task Manager</h1>
@@ -106,7 +103,6 @@ function showSignUp() {
                 <input type="password" id="newPassword" required>
                 <button type="submit">Sign Up</button>
             </form>
-            <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
             <p id="error-message" class="error-message"></p>
         </div>
     `;
