@@ -50,6 +50,15 @@ function renderHeader() {
 
     return header;
 }
+// Logout function
+function logout() {
+    // Clear the logged-in state and current user from localStorage
+    localStorage.removeItem('loggedIn');
+    localStorage.removeItem('currentUser');
+
+    // Redirect to the sign-in page
+    showSignIn();
+}
 
 // Render Sign-In Page
 function showSignIn() {
