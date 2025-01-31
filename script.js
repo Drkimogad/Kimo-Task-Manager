@@ -20,7 +20,7 @@ function renderHeader() {
     const header = document.createElement('header');
     header.innerHTML = `
         <div class="header-container">
-            <h1>Todo Bot App</h1>
+            <h1>Kimo Task Manager</h1>
             <nav>
                 ${!isLoggedIn() ? `
                     <a href="#" onclick="showSignIn()">Sign In</a>
@@ -50,7 +50,7 @@ function showSignIn() {
     content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="auth-container">
-            <h1>Sign In</h1>
+            <h1>Kimo Task Manager</h1>
             <form id="signInForm">
                 <label for="email">Email:</label>
                 <input type="email" id="email" required>
@@ -88,7 +88,7 @@ function showSignUp() {
     content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="auth-container">
-            <h1>Sign Up</h1>
+            <h1>Kimo Task Manager</h1>
             <form id="signUpForm">
                 <label for="newEmail">Email:</label>
                 <input type="email" id="newEmail" required>
@@ -132,7 +132,7 @@ function showDashboard() {
     content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="dashboard-container">
-            <h1>Welcome, ${currentUser.email}!</h1>
+            <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
             <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
             <div class="progress-bar">
                 <div id="progress" class="progress"></div>
