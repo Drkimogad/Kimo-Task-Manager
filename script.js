@@ -57,6 +57,7 @@ function showSignIn() {
     console.log("Rendering Sign-In Page");
     const content = document.getElementById('content');
     content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="auth-container">
             <h1>Kimo Task Manager</h1>
@@ -67,6 +68,7 @@ function showSignIn() {
                 <input type="password" id="password" required>
                 <button type="submit">Sign In</button>
             </form>
+            <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
             <p id="error-message" class="error-message"></p>
         </div>
     `;
@@ -93,6 +95,7 @@ function showSignUp() {
     console.log("Rendering Sign-Up Page");
     const content = document.getElementById('content');
     content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
     content.innerHTML += `
         <div class="auth-container">
             <h1>Kimo Task Manager</h1>
@@ -103,122 +106,7 @@ function showSignUp() {
                 <input type="password" id="newPassword" required>
                 <button type="submit">Sign Up</button>
             </form>
-            <p id="error-message" class="error-message"></p>
-        </div>
-    `;
-
-    document.getElementById('signUpForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-        const newEmail = document.getElementById('newEmail').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-
-        if (users.some(user => user.email === newEmail)) {
-let currentUser = null; // For keeping track of logged-in user
-let isDarkMode = false; // Track dark mode state
-
-// Helper functions for login state
-function isLoggedIn() {
-    return localStorage.getItem('loggedIn') === 'true';
-}
-
-function getLoggedInUser() {
-    return JSON.parse(localStorage.getItem('currentUser'));
-}
-
-// Hash password (basic example, not production-ready)
-function hashPassword(password) {
-    return btoa(password); // Base64 encoding for demonstration purposes
-}
-
-// Logout function
-function logout() {
-    // Clear the logged-in state and current user from localStorage
-    localStorage.removeItem('loggedIn');
-    localStorage.removeItem('currentUser');
-
-    // Redirect to the sign-in page
-    showSignIn();
-}
-
-// Render Header
-function renderHeader() {
-    const header = document.createElement('header');
-    header.innerHTML = `
-        <div class="header-container">
-            <h1>Kimo Task Manager</h1>
-            <nav>
-                ${!isLoggedIn() ? `
-                    <a href="#" onclick="showSignIn()">Sign In</a>
-                    <a href="#" onclick="showSignUp()">Sign Up</a>
-                ` : `
-                    <button id="logoutButton" class="logout-button">🚪 Logout</button>
-                `}
-            </nav>
-        </div>
-    `;
-
-    // Add logout functionality if user is logged in
-    if (isLoggedIn()) {
-        header.querySelector('#logoutButton').addEventListener('click', function () {
-            logout();
-        });
-    }
-
-    return header;
-}
-
-// Render Sign-In Page
-function showSignIn() {
-    console.log("Rendering Sign-In Page");
-    const content = document.getElementById('content');
-    content.innerHTML = ''; // Clear existing content
-    content.innerHTML += `
-        <div class="auth-container">
-            <h1>Kimo Task Manager</h1>
-            <form id="signInForm">
-                <label for="email">Email:</label>
-                <input type="email" id="email" required>
-                <label for="password">Password:</label>
-                <input type="password" id="password" required>
-                <button type="submit">Sign In</button>
-            </form>
-            <p id="error-message" class="error-message"></p>
-        </div>
-    `;
-
-    document.getElementById('signInForm').addEventListener('submit', function (event) {
-        event.preventDefault();
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
-        const users = JSON.parse(localStorage.getItem('users')) || [];
-        const user = users.find(user => user.email === email && user.password === hashPassword(password));
-
-        if (user) {
-            localStorage.setItem('loggedIn', 'true');
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            showDashboard();
-        } else {
-            document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
-        }
-    });
-}
-
-// Render Sign-Up Page
-function showSignUp() {
-    console.log("Rendering Sign-Up Page");
-    const content = document.getElementById('content');
-    content.innerHTML = ''; // Clear existing content
-    content.innerHTML += `
-        <div class="auth-container">
-            <h1>Kimo Task Manager</h1>
-            <form id="signUpForm">
-                <label for="newEmail">Email:</label>
-                <input type="email" id="newEmail" required>
-                <label for="newPassword">Password:</label>
-                <input type="password" id="newPassword" required>
-                <button type="submit">Sign Up</button>
-            </form>
+            <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
             <p id="error-message" class="error-message"></p>
         </div>
     `;
@@ -296,14 +184,6 @@ function showDashboard() {
 
     displayTasks();
     updateProgressBar();
-}
-
-// Ensure the sign-up form shows on the opening of the app by default
-console.log("Initializing app");
-if (isLoggedIn()) {
-    showDashboard();
-} else {
-    showSignUp();
 }
 
 // Handle the user input to add/delete/update tasks
@@ -530,4 +410,3 @@ function urlBase64ToUint8Array(base64String) {
   const rawData = window.atob(base64);
   return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
 }
-
