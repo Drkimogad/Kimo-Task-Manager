@@ -33,8 +33,7 @@ function renderHeader() {
             <h1>Kimo Task Manager</h1>
             <nav>
                 ${!isLoggedIn() ? `
-                    <a href="#" onclick="showSignIn()">Sign In</a>
-                    <a href="#" onclick="showSignUp()">Sign Up</a>
+                    <span>A simple task management app with voice commands.</span>
                 ` : `
                     <button id="logoutButton" class="logout-button">🚪 Logout</button>
                 `}
