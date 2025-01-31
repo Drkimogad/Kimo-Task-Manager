@@ -15,6 +15,16 @@ function hashPassword(password) {
     return btoa(password); // Base64 encoding for demonstration purposes
 }
 
+// Logout function
+function logout() {
+    // Clear the logged-in state and current user from localStorage
+    localStorage.removeItem('loggedIn');
+    localStorage.removeItem('currentUser');
+
+    // Redirect to the sign-in page
+    showSignIn();
+}
+
 // Render Header
 function renderHeader() {
     const header = document.createElement('header');
