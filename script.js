@@ -140,6 +140,141 @@ function showDashboard() {
     content.innerHTML += `
         <div class="dashboard-container">
             <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
+let currentUser = null; // For keeping track of logged-in user
+let isDarkMode = false; // Track dark mode state
+
+// Helper functions for login state
+function isLoggedIn() {
+    return localStorage.getItem('loggedIn') === 'true';
+}
+
+function getLoggedInUser() {
+    return JSON.parse(localStorage.getItem('currentUser'));
+}
+
+// Hash password (basic example, not production-ready)
+function hashPassword(password) {
+    return btoa(password); // Base64 encoding for demonstration purposes
+}
+
+// Logout function
+function logout() {
+    // Clear the logged-in state and current user from localStorage
+    localStorage.removeItem('loggedIn');
+    localStorage.removeItem('currentUser');
+
+    // Redirect to the sign-in page
+    showSignIn();
+}
+
+// Render Header
+function renderHeader() {
+    const header = document.createElement('header');
+    header.innerHTML = `
+        <div class="header-container">
+            <h1>Kimo Task Manager</h1>
+            <nav>
+                ${!isLoggedIn() ? `
+                    <span>A simple task management app with voice commands.</span>
+                `}
+            </nav>
+        </div>
+    `;
+
+    return header;
+}
+
+// Render Sign-In Page
+function showSignIn() {
+    console.log("Rendering Sign-In Page");
+    const content = document.getElementById('content');
+    content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
+        <div class="auth-container">
+            <h1>Kimo Task Manager</h1>
+            <form id="signInForm">
+                <label for="email">Email:</label>
+                <input type="email" id="email" required>
+                <label for="password">Password:</label>
+                <input type="password" id="password" required>
+                <button type="submit">Sign In</button>
+            </form>
+            <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
+            <p id="error-message" class="error-message"></p>
+        </div>
+    `;
+
+    document.getElementById('signInForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+        const user = users.find(user => user.email === email && user.password === hashPassword(password));
+
+        if (user) {
+            localStorage.setItem('loggedIn', 'true');
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            showDashboard();
+        } else {
+            document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
+        }
+    });
+}
+
+// Render Sign-Up Page
+function showSignUp() {
+    console.log("Rendering Sign-Up Page");
+    const content = document.getElementById('content');
+    content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
+        <div class="auth-container">
+            <h1>Kimo Task Manager</h1>
+            <form id="signUpForm">
+                <label for="newEmail">Email:</label>
+                <input type="email" id="newEmail" required>
+                <label for="newPassword">Password:</label>
+                <input type="password" id="newPassword" required>
+                <button type="submit">Sign Up</button>
+            </form>
+            <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
+            <p id="error-message" class="error-message"></p>
+        </div>
+    `;
+
+    document.getElementById('signUpForm').addEventListener('submit', function (event) {
+        event.preventDefault();
+        const newEmail = document.getElementById('newEmail').value;
+        const newPassword = document.getElementById('newPassword').value;
+        const users = JSON.parse(localStorage.getItem('users')) || [];
+
+        if (users.some(user => user.email === newEmail)) {
+            document.getElementById('error-message').textContent = 'Email already exists. Please use a different email.';
+        } else {
+            users.push({ email: newEmail, password: hashPassword(newPassword) });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Sign up successful! Please sign in.');
+            showSignIn();
+        }
+    });
+}
+
+// Render Dashboard
+function showDashboard() {
+    console.log("Rendering Dashboard");
+    if (!isLoggedIn()) {
+        showSignIn();
+        return;
+    }
+
+    currentUser = getLoggedInUser();
+    const content = document.getElementById('content');
+    content.innerHTML = ''; // Clear existing content
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
+        <div class="dashboard-container">
+            <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
             <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
             <div class="progress-bar">
                 <div id="progress" class="progress"></div>
@@ -161,6 +296,9 @@ function showDashboard() {
             </div>
         </div>
     `;
+
+  // Show logout button
+    document.getElementById('logoutButton').style.display = 'block';
 
     // Handle the task input and interaction with bot
     document.getElementById('taskInputForm').addEventListener('submit', function (event) {
@@ -186,6 +324,14 @@ function showDashboard() {
 
     displayTasks();
     updateProgressBar();
+}
+
+// Initialize the app
+console.log("Initializing app");
+if (isLoggedIn()) {
+    showDashboard();
+} else {
+    showSignIn();
 }
 
 // Parse task input for description, due date, priority, category, and subcategory
