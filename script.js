@@ -34,8 +34,6 @@ function renderHeader() {
             <nav>
                 ${!isLoggedIn() ? `
                     <span>A simple task management app with voice commands.</span>
-                ` : `
-                    <button id="logoutButton" class="logout-button">🚪 Logout</button>
                 `}
             </nav>
         </div>
