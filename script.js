@@ -155,14 +155,31 @@ function showDashboard() {
                     <label for="categorySelect">Category:</label>
                     <select id="categorySelect">
                         <option value="Work">Work</option>
-                        <option value="Personal">Personal</option>
+                        <option value="Medical">Medical</option>
+                        <option value="Healthcare">Healthcare</option>
+                        <option value="Exercise">Exercise</option>
+                        <option value="Personal">Personal</option>     
                         <option value="Shopping">Shopping</option>
+                        <option value="Travel">Travel</option>
+                        <option value="School">School</option>
+                        <option value="Veterinary">Veterinary</option>
                     </select>
                     <label for="subCategorySelect">Sub-Category:</label>
                     <select id="subCategorySelect">
                         <option value="Groceries">Groceries</option>
                         <option value="Electronics">Electronics</option>
                         <option value="Clothing">Clothing</option>
+                        <option value="Food">Food</option>
+                        <option value="Appliances">Appliances</option>
+                        <option value="Drinks">Drinks</option>
+                        <option value="Beauty care">Beauty care</option>
+                        <option value="Appointments">Appointments</option>
+                        <option value="Toiletries">Toiletries</option>
+                        <option value="Upcoming holiday">Upcoming holiday</option>
+                        <option value="School trips, Extracurricularactivities, Pick-upandDrop-off">Clothing</option>
+                        <option value="Gym, Park, Running, Walking ">Gym, Park, Running, Walking </option>
+                        <option value="Diet">Diet</option>
+                        <option value="Dog food, Cat food">Dog food, Cat food</option>
                     </select>
                 </form>
                 <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
