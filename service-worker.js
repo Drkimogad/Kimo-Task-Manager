@@ -11,24 +11,23 @@ const urlsToCache = [
 ];
 let deferredPrompt;
 
-   window.addEventListener('beforeinstallprompt', (event) => {
-       event.preventDefault();
-       deferredPrompt = event;
-       document.getElementById('installButton').style.display = 'block';
-   });
+window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    document.getElementById('installButton').style.display = 'block';
+});
 
-   document.getElementById('installButton').addEventListener('click', () => {
-       deferredPrompt.prompt();
-       deferredPrompt.userChoice.then((choiceResult) => {
-           if (choiceResult.outcome === 'accepted') {
-               console.log('User accepted the install prompt');
-           } else {
-               console.log('User dismissed the install prompt');
-           }
-           deferredPrompt = null;
-       });
-   });
-
+document.getElementById('installButton').addEventListener('click', () => {
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+            console.log('User accepted the install prompt');
+        } else {
+            console.log('User dismissed the install prompt');
+        }
+        deferredPrompt = null;
+    });
+});
 
 // Install event: Cache necessary assets
 self.addEventListener('install', (event) => {
@@ -104,8 +103,7 @@ self.addEventListener('activate', (event) => {
     );
 });
 
-// **UPDATED SECTION FOR PUSH NOTIFICATIONS**
-
+// Push notifications
 self.addEventListener('push', (event) => {
     const options = {
         body: event.data ? event.data.text() : 'You have a new reminder!',
@@ -118,123 +116,100 @@ self.addEventListener('push', (event) => {
     );
 });
 
-// **END OF UPDATED SECTION**
-
-// NEW: Check for updates and fetch new service worker
+// Check for updates and fetch new service worker
 self.addEventListener('message', (event) => {
     if (event.data.action === 'skipWaiting') {
         self.skipWaiting(); // Skip waiting and immediately activate the new service worker
     }
 });
 
-   // Background Sync for offline tasks
-   self.addEventListener('sync', (event) => {
-       if (event.tag === 'sync-tasks') {
-           event.waitUntil(syncTasks());
-       }
-   });
+// Background Sync for offline tasks
+self.addEventListener('sync', (event) => {
+    if (event.tag === 'sync-tasks') {
+        event.waitUntil(syncTasks());
+    }
+});
 
-   // Function to sync tasks when online
-   function syncTasks() {
-       // Logic to sync tasks with the server
-       console.log('Syncing tasks with the server...');
-   }
-// Register for push notifications
-   function registerPushNotifications() {
-       if ('Notification' in window && 'PushManager' in window) {
-           Notification.requestPermission().then((permission) => {
-               if (permission === 'granted') {
-                   console.log('Push notifications granted');
-               }
-           });
-       }
-   }
+// Function to sync tasks when online
+async function syncTasks() {
+    const db = await openDB();
+    const transaction = db.transaction('tasks', 'readonly');
+    const store = transaction.objectStore('tasks');
+    const tasks = store.getAll();
 
-   // Handle push notifications in the service worker
-   self.addEventListener('push', (event) => {
-       const data = event.data.json();
-       const title = data.title || 'New Task Added';
-       const options = {
-           body: data.body || 'A new task has been added via voice command.',
-           icon: '/icon.png',
-       };
+    tasks.onsuccess = async () => {
+        for (const task of tasks.result) {
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task),
+            });
+        }
+    };
+}
 
-       event.waitUntil(
-           self.registration.showNotification(title, options)
-       );
-   });
-// Start voice recognition
-   function startVoiceRecognition() {
-       if (!('webkitSpeechRecognition' in window)) {
-           alert('Your browser does not support speech recognition.');
-           return;
-       }
-
-       const recognition = new webkitSpeechRecognition();
-       recognition.lang = 'en-US';
-       recognition.continuous = false;
-       recognition.interimResults = false;
-
-       recognition.onstart = function () {
-           console.log('Voice recognition started. Try speaking into the microphone.');
-       };
-
-       recognition.onresult = function (event) {
-           if (event.results.length > 0) {
-               const voiceInput = event.results[0][0].transcript.toLowerCase();
-               console.log(`Voice Input: ${voiceInput}`);
-               handleUserInput(voiceInput);
-           }
-       };
-
-       recognition.onerror = function (event) {
-           console.error('Speech recognition error', event);
-       };
-
-       recognition.onend = function () {
-           console.log('Voice recognition ended.');
-       };
-
-       recognition.start();
-   }
 // Open or create an IndexedDB database
-   const openDB = () => {
-       return new Promise((resolve, reject) => {
-           const request = indexedDB.open('TodoBotDB', 1);
+const openDB = () => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('TodoBotDB', 1);
 
-           request.onupgradeneeded = (event) => {
-               const db = event.target.result;
-               if (!db.objectStoreNames.contains('tasks')) {
-                   db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-               }
-           };
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('tasks')) {
+                db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+            }
+        };
 
-           request.onsuccess = (event) => resolve(event.target.result);
-           request.onerror = (event) => reject(event.target.error);
-       });
-   };
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
+};
 
-   // Add a task to IndexedDB
-   const addTaskToDB = async (task) => {
-       const db = await openDB();
-       const transaction = db.transaction('tasks', 'readwrite');
-       const store = transaction.objectStore('tasks');
-       store.add(task);
-   };
-// sync tasks with the server
-const syncTasks = async () => {
-       const db = await openDB();
-       const transaction = db.transaction('tasks', 'readonly');
-       const store = transaction.objectStore('tasks');
-       const tasks = store.getAll();
+// Add a task to IndexedDB
+const addTaskToDB = async (task) => {
+    const db = await openDB();
+    const transaction = db.transaction('tasks', 'readwrite');
+    const store = transaction.objectStore('tasks');
+    store.add(task);
+};
 
-       tasks.onsuccess = async () => {
-           for (const task of tasks.result) {
-               await fetch('/api/tasks', {
-                   method: 'POST',
-                   headers: { 'Content-Type': 'application/json' },
-                   body: JSON.stringify(task),
-               });
-           }
-       };
-   };
+// Voice recognition function
+function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition.');
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function () {
+        console.log('Voice recognition started. Try speaking into the microphone.');
+        // Kimo's greeting
+        const speech = new SpeechSynthesisUtterance("What can I do for you today?");
+        window.speechSynthesis.speak(speech);
+    };
+
+    recognition.onresult = function (event) {
+        if (event.results.length > 0) {
+            const voiceInput = event.results[0][0].transcript.toLowerCase();
+            console.log(`Voice Input: ${voiceInput}`);
+            handleUserInput(voiceInput);
+            // Kimo's confirmation
+            const speech = new SpeechSynthesisUtterance(`Task "${voiceInput}" received.`);
+            window.speechSynthesis.speak(speech);
+        }
+    };
+
+    recognition.onerror = function (event) {
+        console.error('Speech recognition error', event);
+    };
+
+    recognition.onend = function () {
+        console.log('Voice recognition ended.');
+    };
+
+    recognition.start();
+}
