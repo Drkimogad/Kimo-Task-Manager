@@ -371,6 +371,125 @@ if (isLoggedIn()) {
     showSignIn();
 }
 
+//improve task input parsing
+function parseTaskInput(input) {
+      const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date
+      const priorityMatch = input.match(/high|medium|low/i); // Extract priority
+      const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
+      const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food|cat food/i); // Extract subcategory
+
+      return {
+          description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
+          dueDate: dueDateMatch ? dueDateMatch[0] : null,
+          priority: priorityMatch ? priorityMatch[0] : 'Medium',
+          category: categoryMatch ? categoryMatch[0] : 'Other',
+          subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
+      };
+}
+//Voice recognition improvement 
+recognition.onresult = function (event) {
+      if (event.results.length > 0) {
+          const voiceInput = event.results[0][0].transcript.toLowerCase();
+          console.log(`Voice Input: ${voiceInput}`);
+
+          const taskDetails = parseTaskInput(voiceInput);
+          const confirmationMessage = `You said: "${taskDetails.description}". Is this correct?`;
+          updateChatBox(confirmationMessage);
+
+          // Speak the confirmation message
+          const speech = new SpeechSynthesisUtterance(confirmationMessage);
+          window.speechSynthesis.speak(speech);
+
+          // Wait for user confirmation (e.g., via a button or another voice command)
+          document.getElementById('confirmTaskButton').addEventListener('click', function () {
+              addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
+          });
+      }
+  };
+
+//Add task template 
+function showTaskTemplates() {
+      const templates = [
+          "Add task: Buy groceries by 10/15/2023 (Category: Shopping, Subcategory: Groceries, Priority: High)",
+          "Add task: Finish project by Friday (Category: Work, Subcategory: Appointments, Priority: Medium)",
+          "Add task: Gym at 7 PM (Category: Exercise, Subcategory: Gym, Priority: Low)",
+      ];
+
+      const templateList = document.createElement('ul');
+      templates.forEach(template => {
+          const li = document.createElement('li');
+          li.textContent = template;
+          li.addEventListener('click', () => {
+              document.getElementById('taskInput').value = template;
+          });
+          templateList.appendChild(li);
+      });
+
+      document.getElementById('taskTemplates').appendChild(templateList);
+}
+
+//add error handling 
+function handleUserInput(input) {
+      const taskDetails = parseTaskInput(input);
+      if (!taskDetails.description) {
+          updateChatBox('Please specify a task description. For example, "Add task: Buy groceries."');
+          return;
+      }
+
+      addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
+}
+//multi step task creation
+function showTaskCreationForm() {
+      const steps = [
+          { question: "What is the task description?", field: 'description' },
+          { question: "When is it due? (e.g., 10/15/2023)", field: 'dueDate' },
+          { question: "What is the priority? (High, Medium, Low)", field: 'priority' },
+          { question: "What is the category?", field: 'category' },
+          { question: "What is the subcategory?", field: 'subCategory' },
+      ];
+
+      let currentStep = 0;
+      const taskDetails = {};
+
+      function nextStep() {
+          if (currentStep < steps.length) {
+              const step = steps[currentStep];
+              updateChatBox(step.question);
+              currentStep++;
+          } else {
+              addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
+          }
+      }
+
+      document.getElementById('taskInputForm').addEventListener('submit', function (event) {
+          event.preventDefault();
+          const input = document.getElementById('taskInput').value;
+          taskDetails[steps[currentStep - 1].field] = input;
+          nextStep();
+      });
+
+      nextStep();
+}
+
+//Voice feedback 
+function speak(message) {
+      const speech = new SpeechSynthesisUtterance(message);
+      window.speechSynthesis.speak(speech);
+  }
+
+  function handleUserInput(input) {
+      const taskDetails = parseTaskInput(input);
+      if (!taskDetails.description) {
+          speak("Please specify a task description.");
+          return;
+      }
+
+      addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
+      speak(`Task "${taskDetails.description}" added.`);
+  }
+
+
+
 // Function to subscribe the user to push notifications
 function subscribeUserToPushNotifications(registration) {
     // Check if the user is already subscribed
