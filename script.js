@@ -152,36 +152,8 @@ function showDashboard() {
                     <label for="taskInput">Ask me to add, delete, or update a task:</label>
                     <input type="text" id="taskInput" required>
                     <button type="submit">Send</button>
-                    <label for="categorySelect">Category:</label>
-                    <select id="categorySelect">
-                        <option value="Work">Work</option>
-                        <option value="Medical">Medical</option>
-                        <option value="Healthcare">Healthcare</option>
-                        <option value="Exercise">Exercise</option>
-                        <option value="Personal">Personal</option>     
-                        <option value="Shopping">Shopping</option>
-                        <option value="Travel">Travel</option>
-                        <option value="School">School</option>
-                        <option value="Veterinary">Veterinary</option>
-                    </select>
-                    <label for="subCategorySelect">Sub-Category:</label>
-                    <select id="subCategorySelect">
-                        <option value="Groceries">Groceries</option>
-                        <option value="Electronics">Electronics</option>
-                        <option value="Clothing">Clothing</option>
-                        <option value="Food">Food</option>
-                        <option value="Appliances">Appliances</option>
-                        <option value="Drinks">Drinks</option>
-                        <option value="Beauty care">Beauty care</option>
-                        <option value="Appointments">Appointments</option>
-                        <option value="Toiletries">Toiletries</option>
-                        <option value="Upcoming holiday">Upcoming holiday</option>
-                        <option value="School trips, Extracurricularactivities, Pick-upandDrop-off">Clothing</option>
-                        <option value="Gym, Park, Running, Walking ">Gym, Park, Running, Walking </option>
-                        <option value="Diet">Diet</option>
-                        <option value="Dog food">Dog food</option>
-                        <option value="Cat food">Cat food</option>
-                    </select>
+                    <button type="button" id="showTemplates">Show Task Templates</button>
+                    <div id="taskTemplates"></div>
                 </form>
                 <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
             </div>
@@ -196,11 +168,12 @@ function showDashboard() {
     document.getElementById('taskInputForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const taskInput = document.getElementById('taskInput').value.toLowerCase();
-        const category = document.getElementById('categorySelect').value;
-        const subCategory = document.getElementById('subCategorySelect').value;
-        handleUserInput(taskInput, category, subCategory);
+        handleUserInput(taskInput);
         document.getElementById('taskInput').value = ''; // Clear input field
     });
+
+    // Show task templates
+    document.getElementById('showTemplates').addEventListener('click', showTaskTemplates);
 
     // Voice command button
     document.getElementById('startVoice').addEventListener('click', function () {
@@ -217,37 +190,58 @@ function showDashboard() {
     updateProgressBar();
 }
 
+// Parse task input for description, due date, priority, category, and subcategory
+function parseTaskInput(input) {
+    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date
+    const priorityMatch = input.match(/high|medium|low/i); // Extract priority
+    const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
+    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food|cat food/i); // Extract subcategory
+
+    return {
+        description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
+        dueDate: dueDateMatch ? dueDateMatch[0] : null,
+        priority: priorityMatch ? priorityMatch[0] : 'Medium',
+        category: categoryMatch ? categoryMatch[0] : 'Other',
+        subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
+    };
+}
+
 // Handle the user input to add/delete/update tasks
-function handleUserInput(input, category, subCategory) {
+function handleUserInput(input) {
     console.log(`Handling user input: ${input}`);
-    if (input.includes('add task')) {
-        const taskDescription = input.replace('add task', '').trim();
-        if (taskDescription) {
-            const dueDate = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/)?.[0] || null; // Extract date from input
-            const priority = input.includes('high') ? 'High' : input.includes('medium') ? 'Medium' : 'Low';
-            addTask(taskDescription, category, subCategory, dueDate, priority);
-            updateChatBox(`Task "${taskDescription}" added.`);
+    if (input.includes('add task') || input.includes('create task')) {
+        const taskDetails = parseTaskInput(input);
+        if (taskDetails.description) {
+            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
+            updateChatBox(`Task "${taskDetails.description}" added.`);
+            speak(`Task "${taskDetails.description}" added.`);
         } else {
             updateChatBox('Please specify a task.');
+            speak('Please specify a task.');
         }
     } else if (input.includes('delete task')) {
         const taskId = parseInt(input.replace('delete task', '').trim());
         if (taskId && !isNaN(taskId)) {
             deleteTask(taskId - 1); // Assuming task IDs start from 1
             updateChatBox(`Task ${taskId} deleted.`);
+            speak(`Task ${taskId} deleted.`);
         } else {
             updateChatBox('Please specify a valid task ID to delete.');
+            speak('Please specify a valid task ID to delete.');
         }
     } else if (input.includes('mark as done')) {
         const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
         if (taskId && !isNaN(taskId)) {
             markTaskAsDone(taskId - 1);
             updateChatBox(`Task ${taskId} marked as done.`);
+            speak(`Task ${taskId} marked as done.`);
         } else {
             updateChatBox('Please specify a valid task ID to mark as done.');
+            speak('Please specify a valid task ID to mark as done.');
         }
     } else {
         updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+        speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
     }
 }
 
@@ -336,9 +330,7 @@ function startVoiceRecognition() {
 
     recognition.onstart = function () {
         console.log('Voice recognition started. Try speaking into the microphone.');
-        // Kimo's greeting
-        const speech = new SpeechSynthesisUtterance("Hello, how may I help?");
-        window.speechSynthesis.speak(speech);
+        speak("Hello, how may I help?");
     };
 
     recognition.onresult = function (event) {
@@ -346,9 +338,6 @@ function startVoiceRecognition() {
             const voiceInput = event.results[0][0].transcript.toLowerCase();
             console.log(`Voice Input: ${voiceInput}`);
             handleUserInput(voiceInput);
-            // Kimo's confirmation
-            const speech = new SpeechSynthesisUtterance(`Task "${voiceInput}" received.`);
-            window.speechSynthesis.speak(speech);
         }
     };
 
@@ -363,204 +352,37 @@ function startVoiceRecognition() {
     recognition.start();
 }
 
+// Speak a message
+function speak(message) {
+    const speech = new SpeechSynthesisUtterance(message);
+    window.speechSynthesis.speak(speech);
+}
+
+// Show task templates
+function showTaskTemplates() {
+    const templates = [
+        "Add task: Buy groceries by 10/15/2023 (Category: Shopping, Subcategory: Groceries, Priority: High)",
+        "Add task: Finish project by Friday (Category: Work, Subcategory: Appointments, Priority: Medium)",
+        "Add task: Gym at 7 PM (Category: Exercise, Subcategory: Gym, Priority: Low)",
+    ];
+
+    const templateList = document.createElement('ul');
+    templates.forEach(template => {
+        const li = document.createElement('li');
+        li.textContent = template;
+        li.addEventListener('click', () => {
+            document.getElementById('taskInput').value = template;
+        });
+        templateList.appendChild(li);
+    });
+
+    document.getElementById('taskTemplates').appendChild(templateList);
+}
+
 // Initialize the app
 console.log("Initializing app");
 if (isLoggedIn()) {
     showDashboard();
 } else {
     showSignIn();
-}
-
-//improve task input parsing
-function parseTaskInput(input) {
-      const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date
-      const priorityMatch = input.match(/high|medium|low/i); // Extract priority
-      const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-      const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food|cat food/i); // Extract subcategory
-
-      return {
-          description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
-          dueDate: dueDateMatch ? dueDateMatch[0] : null,
-          priority: priorityMatch ? priorityMatch[0] : 'Medium',
-          category: categoryMatch ? categoryMatch[0] : 'Other',
-          subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
-      };
-}
-//Voice recognition improvement 
-recognition.onresult = function (event) {
-      if (event.results.length > 0) {
-          const voiceInput = event.results[0][0].transcript.toLowerCase();
-          console.log(`Voice Input: ${voiceInput}`);
-
-          const taskDetails = parseTaskInput(voiceInput);
-          const confirmationMessage = `You said: "${taskDetails.description}". Is this correct?`;
-          updateChatBox(confirmationMessage);
-
-          // Speak the confirmation message
-          const speech = new SpeechSynthesisUtterance(confirmationMessage);
-          window.speechSynthesis.speak(speech);
-
-          // Wait for user confirmation (e.g., via a button or another voice command)
-          document.getElementById('confirmTaskButton').addEventListener('click', function () {
-              addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
-          });
-      }
-  };
-
-//Add task template 
-function showTaskTemplates() {
-      const templates = [
-          "Add task: Buy groceries by 10/15/2023 (Category: Shopping, Subcategory: Groceries, Priority: High)",
-          "Add task: Finish project by Friday (Category: Work, Subcategory: Appointments, Priority: Medium)",
-          "Add task: Gym at 7 PM (Category: Exercise, Subcategory: Gym, Priority: Low)",
-      ];
-
-      const templateList = document.createElement('ul');
-      templates.forEach(template => {
-          const li = document.createElement('li');
-          li.textContent = template;
-          li.addEventListener('click', () => {
-              document.getElementById('taskInput').value = template;
-          });
-          templateList.appendChild(li);
-      });
-
-      document.getElementById('taskTemplates').appendChild(templateList);
-}
-
-//add error handling 
-function handleUserInput(input) {
-      const taskDetails = parseTaskInput(input);
-      if (!taskDetails.description) {
-          updateChatBox('Please specify a task description. For example, "Add task: Buy groceries."');
-          return;
-      }
-
-      addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
-}
-//multi step task creation
-function showTaskCreationForm() {
-      const steps = [
-          { question: "What is the task description?", field: 'description' },
-          { question: "When is it due? (e.g., 10/15/2023)", field: 'dueDate' },
-          { question: "What is the priority? (High, Medium, Low)", field: 'priority' },
-          { question: "What is the category?", field: 'category' },
-          { question: "What is the subcategory?", field: 'subCategory' },
-      ];
-
-      let currentStep = 0;
-      const taskDetails = {};
-
-      function nextStep() {
-          if (currentStep < steps.length) {
-              const step = steps[currentStep];
-              updateChatBox(step.question);
-              currentStep++;
-          } else {
-              addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
-          }
-      }
-
-      document.getElementById('taskInputForm').addEventListener('submit', function (event) {
-          event.preventDefault();
-          const input = document.getElementById('taskInput').value;
-          taskDetails[steps[currentStep - 1].field] = input;
-          nextStep();
-      });
-
-      nextStep();
-}
-
-//Voice feedback 
-function speak(message) {
-      const speech = new SpeechSynthesisUtterance(message);
-      window.speechSynthesis.speak(speech);
-  }
-
-  function handleUserInput(input) {
-      const taskDetails = parseTaskInput(input);
-      if (!taskDetails.description) {
-          speak("Please specify a task description.");
-          return;
-      }
-
-      addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
-      speak(`Task "${taskDetails.description}" added.`);
-  }
-
-
-
-// Function to subscribe the user to push notifications
-function subscribeUserToPushNotifications(registration) {
-    // Check if the user is already subscribed
-    registration.pushManager.getSubscription()
-        .then(function (subscription) {
-            if (subscription) {
-                console.log('Already subscribed to push notifications:', subscription);
-                // You can send the subscription details to your server here if needed
-            } else {
-                // If not subscribed, create a new subscription
-                registration.pushManager.subscribe({
-                    userVisibleOnly: true, // Ensures notifications are visible to the user
-                    applicationServerKey: urlB64ToUint8Array('BFT2ZAIuHo5wtIgax8uovZ-mHaZqR8dJz5kaQRsS0JpzeKCqX6Y_27E_R2YFoD_1Z4J93j2BU5rc4hVHT76qbrU') // Replace with your VAPID public key
-                })
-                    .then(function (newSubscription) {
-                        console.log('Subscribed to push notifications:', newSubscription);
-                        // You can send the subscription details to your server here if needed
-                    })
-                    .catch(function (error) {
-                        console.error('Failed to subscribe to push notifications:', error);
-                    });
-            }
-        })
-        .catch(function (error) {
-            console.error('Error during subscription check:', error);
-        });
-}
-
-// Helper function to convert the VAPID public key from Base64 to Uint8Array
-function urlB64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding)
-        .replace(/\-/g, '+')
-        .replace(/\_/g, '/');
-    const rawData = atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; i++) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-}
-
-// Modify your script.js file to send the subscription data to your server
-
-const publicVapidKey = 'BFT2ZAIuHo5wtIgax8uovZ-mHaZqR8dJz5kaQRsS0JpzeKCqX6Y_27E_R2YFoD_1Z4J93j2BU5rc4hVHT76qbrU';
-
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('service-worker.js')
-        .then(async registration => {
-            console.log('Service Worker registered.');
-
-            const subscription = await registration.pushManager.subscribe({
-                userVisibleOnly: true,
-                applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-            });
-
-            console.log('Subscribed:', subscription);
-
-            // Send subscription to the server
-            await fetch('https://pet-studio.vercel.app/api/save-subscription', {
-                method: 'POST',
-                body: JSON.stringify(subscription),
-                headers: { 'Content-Type': 'application/json' },
-            });
-        })
-        .catch(console.error);
-}
-
-function urlBase64ToUint8Array(base64String) {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
 }
