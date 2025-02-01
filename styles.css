@@ -211,7 +211,7 @@ input[type="password"]:focus {
     background-color: #dc3545;
 }
 
-.task-item button.delete:hover {
+task-item button.delete:hover {
     background-color: #c82333;
 }
 
@@ -270,7 +270,7 @@ body.dark-mode {
     font-weight: bold; /* Bold text */
     cursor: pointer; /* Pointer cursor on hover */
     transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
-    display: flex;
+    display: none; /* Initially hidden */
     align-items: center;
     gap: 8px; /* Space between icon and text */
 }
