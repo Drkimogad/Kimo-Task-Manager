@@ -50,15 +50,6 @@ function renderHeader() {
 
     return header;
 }
-// Logout function
-function logout() {
-    // Clear the logged-in state and current user from localStorage
-    localStorage.removeItem('loggedIn');
-    localStorage.removeItem('currentUser');
-
-    // Redirect to the sign-in page
-    showSignIn();
-}
 
 // Render Sign-In Page
 function showSignIn() {
@@ -161,6 +152,18 @@ function showDashboard() {
                     <label for="taskInput">Ask me to add, delete, or update a task:</label>
                     <input type="text" id="taskInput" required>
                     <button type="submit">Send</button>
+                    <label for="categorySelect">Category:</label>
+                    <select id="categorySelect">
+                        <option value="Work">Work</option>
+                        <option value="Personal">Personal</option>
+                        <option value="Shopping">Shopping</option>
+                    </select>
+                    <label for="subCategorySelect">Sub-Category:</label>
+                    <select id="subCategorySelect">
+                        <option value="Groceries">Groceries</option>
+                        <option value="Electronics">Electronics</option>
+                        <option value="Clothing">Clothing</option>
+                    </select>
                 </form>
                 <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
             </div>
@@ -175,7 +178,9 @@ function showDashboard() {
     document.getElementById('taskInputForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const taskInput = document.getElementById('taskInput').value.toLowerCase();
-        handleUserInput(taskInput);
+        const category = document.getElementById('categorySelect').value;
+        const subCategory = document.getElementById('subCategorySelect').value;
+        handleUserInput(taskInput, category, subCategory);
         document.getElementById('taskInput').value = ''; // Clear input field
     });
 
@@ -195,15 +200,14 @@ function showDashboard() {
 }
 
 // Handle the user input to add/delete/update tasks
-function handleUserInput(input) {
+function handleUserInput(input, category, subCategory) {
     console.log(`Handling user input: ${input}`);
     if (input.includes('add task')) {
         const taskDescription = input.replace('add task', '').trim();
         if (taskDescription) {
-            const category = input.includes('work') ? 'Work' : input.includes('personal') ? 'Personal' : 'Other';
             const dueDate = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/)?.[0] || null; // Extract date from input
             const priority = input.includes('high') ? 'High' : input.includes('medium') ? 'Medium' : 'Low';
-            addTask(taskDescription, category, dueDate, priority);
+            addTask(taskDescription, category, subCategory, dueDate, priority);
             updateChatBox(`Task "${taskDescription}" added.`);
         } else {
             updateChatBox('Please specify a task.');
@@ -240,10 +244,10 @@ function updateChatBox(message) {
 }
 
 // Add a new task to the list
-function addTask(description, category = 'Other', dueDate = null, priority = 'Medium') {
+function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium') {
     console.log(`Adding task: ${description}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.push({ id: tasks.length + 1, description, category, dueDate, priority, done: false });
+    tasks.push({ id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false });
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
     updateProgressBar();
@@ -261,7 +265,7 @@ function displayTasks() {
         li.classList.add('task-item');
         li.innerHTML = `
             <span class="task-description ${task.done ? 'done' : ''}">
-                ${task.description} (${task.category}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
+                ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
             </span>
             <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
             <button class="delete" onclick="deleteTask(${index})">Delete</button>
@@ -314,6 +318,9 @@ function startVoiceRecognition() {
 
     recognition.onstart = function () {
         console.log('Voice recognition started. Try speaking into the microphone.');
+        // Kimo's greeting
+        const speech = new SpeechSynthesisUtterance("What can I do for you today?");
+        window.speechSynthesis.speak(speech);
     };
 
     recognition.onresult = function (event) {
@@ -321,6 +328,9 @@ function startVoiceRecognition() {
             const voiceInput = event.results[0][0].transcript.toLowerCase();
             console.log(`Voice Input: ${voiceInput}`);
             handleUserInput(voiceInput);
+            // Kimo's confirmation
+            const speech = new SpeechSynthesisUtterance(`Task "${voiceInput}" received.`);
+            window.speechSynthesis.speak(speech);
         }
     };
 
@@ -343,12 +353,11 @@ if (isLoggedIn()) {
     showSignIn();
 }
 
-
 // Function to subscribe the user to push notifications
 function subscribeUserToPushNotifications(registration) {
     // Check if the user is already subscribed
     registration.pushManager.getSubscription()
-        .then(function(subscription) {
+        .then(function (subscription) {
             if (subscription) {
                 console.log('Already subscribed to push notifications:', subscription);
                 // You can send the subscription details to your server here if needed
@@ -358,16 +367,16 @@ function subscribeUserToPushNotifications(registration) {
                     userVisibleOnly: true, // Ensures notifications are visible to the user
                     applicationServerKey: urlB64ToUint8Array('BFT2ZAIuHo5wtIgax8uovZ-mHaZqR8dJz5kaQRsS0JpzeKCqX6Y_27E_R2YFoD_1Z4J93j2BU5rc4hVHT76qbrU') // Replace with your VAPID public key
                 })
-                .then(function(newSubscription) {
-                    console.log('Subscribed to push notifications:', newSubscription);
-                    // You can send the subscription details to your server here if needed
-                })
-                .catch(function(error) {
-                    console.error('Failed to subscribe to push notifications:', error);
-                });
+                    .then(function (newSubscription) {
+                        console.log('Subscribed to push notifications:', newSubscription);
+                        // You can send the subscription details to your server here if needed
+                    })
+                    .catch(function (error) {
+                        console.error('Failed to subscribe to push notifications:', error);
+                    });
             }
         })
-        .catch(function(error) {
+        .catch(function (error) {
             console.error('Error during subscription check:', error);
         });
 }
@@ -391,30 +400,30 @@ function urlB64ToUint8Array(base64String) {
 const publicVapidKey = 'BFT2ZAIuHo5wtIgax8uovZ-mHaZqR8dJz5kaQRsS0JpzeKCqX6Y_27E_R2YFoD_1Z4J93j2BU5rc4hVHT76qbrU';
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('service-worker.js')
-    .then(async registration => {
-      console.log('Service Worker registered.');
+    navigator.serviceWorker.register('service-worker.js')
+        .then(async registration => {
+            console.log('Service Worker registered.');
 
-      const subscription = await registration.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
-      });
+            const subscription = await registration.pushManager.subscribe({
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(publicVapidKey),
+            });
 
-      console.log('Subscribed:', subscription);
+            console.log('Subscribed:', subscription);
 
-      // Send subscription to the server
-      await fetch('https://pet-studio.vercel.app/api/save-subscription', {
-        method: 'POST',
-        body: JSON.stringify(subscription),
-        headers: { 'Content-Type': 'application/json' },
-      });
-    })
-    .catch(console.error);
+            // Send subscription to the server
+            await fetch('https://pet-studio.vercel.app/api/save-subscription', {
+                method: 'POST',
+                body: JSON.stringify(subscription),
+                headers: { 'Content-Type': 'application/json' },
+            });
+        })
+        .catch(console.error);
 }
 
 function urlBase64ToUint8Array(base64String) {
-  const padding = '='.repeat((4 - base64String.length % 4) % 4);
-  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-  const rawData = window.atob(base64);
-  return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
+    const padding = '='.repeat((4 - base64String.length % 4) % 4);
+    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+    const rawData = window.atob(base64);
+    return new Uint8Array([...rawData].map(char => char.charCodeAt(0)));
 }
