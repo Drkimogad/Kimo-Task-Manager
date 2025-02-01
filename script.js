@@ -179,7 +179,8 @@ function showDashboard() {
                         <option value="School trips, Extracurricularactivities, Pick-upandDrop-off">Clothing</option>
                         <option value="Gym, Park, Running, Walking ">Gym, Park, Running, Walking </option>
                         <option value="Diet">Diet</option>
-                        <option value="Dog food, Cat food">Dog food, Cat food</option>
+                        <option value="Dog food">Dog food</option>
+                        <option value="Cat food">Cat food</option>
                     </select>
                 </form>
                 <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
@@ -336,7 +337,7 @@ function startVoiceRecognition() {
     recognition.onstart = function () {
         console.log('Voice recognition started. Try speaking into the microphone.');
         // Kimo's greeting
-        const speech = new SpeechSynthesisUtterance("What can I do for you today?");
+        const speech = new SpeechSynthesisUtterance("Hello, how may I help?");
         window.speechSynthesis.speak(speech);
     };
 
