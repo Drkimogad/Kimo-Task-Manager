@@ -1,106 +1,59 @@
 /* General Styles */
 body {
-    font-family: 'Arial', sans-serif;
+    font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f9;
-    color: #333;
-    line-height: 1.6;
-}
-
-h1, h2 {
-    color: #444;
-    margin-bottom: 20px;
-}
-
-a {
-    color: #007bff;
-    text-decoration: none;
-}
-
-a:hover {
-    text-decoration: underline;
+    background-color: #f5f5f5;
 }
 
 header {
-    background-color: #333;
+    background-color: #4CAF50;
     color: white;
-    padding: 10px 20px;
+    padding: 1rem;
+    text-align: center;
+}
+
+.header-container {
     display: flex;
     justify-content: space-between;
     align-items: center;
 }
 
-header h1 {
-    margin: 0;
-    font-size: 24px;
-}
-
-header nav {
+nav {
     display: flex;
-    gap: 10px;
+    align-items: center;
 }
 
-header nav a, header nav button {
-    color: white;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-}
-
-header nav a:hover, header nav button:hover {
-    text-decoration: underline;
+nav span {
+    margin-left: 1rem;
 }
 
 button {
-    background-color: #007bff;
+    background-color: #4CAF50;
     color: white;
     border: none;
-    padding: 10px 15px;
-    border-radius: 5px;
+    padding: 0.5rem 1rem;
     cursor: pointer;
-    font-size: 14px;
-    transition: background-color 0.3s ease;
+    border-radius: 5px;
 }
 
 button:hover {
-    background-color: #0056b3;
-}
-
-input[type="text"],
-input[type="email"],
-input[type="password"] {
-    width: 100%;
-    padding: 10px;
-    margin: 10px 0;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    font-size: 14px;
-}
-
-input[type="text"]:focus,
-input[type="email"]:focus,
-input[type="password"]:focus {
-    border-color: orange;
-    box-shadow: 0 0 5px orange;
-    outline: none;
+    background-color: #45a049;
 }
 
 /* Auth Container */
 .auth-container {
-    max-width: 80%;
-    margin: 50px auto;
-    padding: 20px;
-    background: white;
+    max-width: 400px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
-    text-align: center;
 }
 
 .auth-container h1 {
-    margin-bottom: 20px;
+    text-align: center;
+    margin-bottom: 1rem;
 }
 
 .auth-container form {
@@ -108,251 +61,126 @@ input[type="password"]:focus {
     flex-direction: column;
 }
 
-.auth-container .error-message {
-    color: #ff4444;
-    margin-top: 10px;
-    font-size: 14px;
-    padding: 10px;
-    background-color: #ffe6e6;
+.auth-container label {
+    margin-bottom: 0.5rem;
+}
+
+.auth-container input {
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
     border-radius: 5px;
+}
+
+.auth-container p {
+    text-align: center;
+}
+
+.auth-container .error-message {
+    color: red;
+    text-align: center;
 }
 
 /* Dashboard Container */
 .dashboard-container {
     max-width: 800px;
-    margin: 20px auto;
-    padding: 20px;
-    background: white;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: white;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.dashboard-container h1 {
+.dashboard-container h2 {
     text-align: center;
+    margin-bottom: 1rem;
 }
 
-/* Chat Container */
+.dark-mode-button {
+    margin: 1rem 0;
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.progress-bar {
+    width: 100%;
+    background-color: #ddd;
+    border-radius: 10px;
+    overflow: hidden;
+    margin: 1rem 0;
+}
+
+.progress {
+    height: 20px;
+    background-color: #4CAF50;
+    width: 0;
+    transition: width 0.3s;
+}
+
 .chat-container {
-    margin-bottom: 30px;
+    margin: 1rem 0;
 }
 
 .chat-box {
-    height: 200px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    padding: 10px;
+    height: 150px;
     overflow-y: auto;
-    background-color: #fafafa;
-    margin-bottom: 10px;
-}
-
-.chat-box div {
-    margin-bottom: 10px;
-    padding: 5px;
-    background-color: #e9ecef;
+    border: 1px solid #ccc;
+    padding: 1rem;
     border-radius: 5px;
+    background-color: #f9f9f9;
+    margin-bottom: 1rem;
 }
 
-/* Task Container */
 .task-container {
-    margin-top: 20px;
-}
-
-.task-container h2 {
-    margin-bottom: 15px;
-}
-
-.task-list {
-    list-style: none;
-    padding: 0;
+    margin: 1rem 0;
 }
 
 .task-item {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    background-color: #fafafa;
-    transition: background-color 0.3s ease;
+    padding: 0.5rem;
+    border-bottom: 1px solid #ccc;
 }
 
-.task-item:hover {
-    background-color: #f1f1f1;
-}
-
-.task-description {
-    flex-grow: 1;
-    margin-right: 10px;
-}
-
-.task-description.done {
-    text-decoration: line-through;
-    color: #888;
+.task-item .task-description {
+    flex: 1;
 }
 
 .task-item button {
-    margin-left: 10px;
-    font-size: 12px;
-    padding: 5px 10px;
+    margin-left: 0.5rem;
 }
 
-.task-item button.mark-done {
-    background-color: #28a745;
+.done {
+    text-decoration: line-through;
+    color: gray;
 }
 
-.task-item button.mark-done:hover {
-    background-color: #218838;
-}
-
-.task-item button.delete {
-    background-color: #dc3545;
-}
-
-task-item button.delete:hover {
-    background-color: #c82333;
-}
-
-/* Voice Command Button */
-.voice-button {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 100%;
-    padding: 10px;
-    margin-top: 10px;
-    background-color: #17a2b8;
-    font-size: 16px;
-}
-
-.voice-button:hover {
-    background-color: #138496;
-}
-
-/* Footer Styles */
-footer {
-    text-align: center;
-    padding: 20px;
-    background-color: #007bff;
-    color: white;
-    margin-top: auto; /* Ensures footer sticks to the bottom */
-    position: fixed;
-    bottom: 0;
-    width: 100%;
-}
-
-footer a {
-    color: #ffdd57;
-    text-decoration: none;
-}
-
-footer a:hover {
-    text-decoration: underline;
-}
-
-/* Dark mode styles */
+/* Dark Mode Styles */
 body.dark-mode {
-    background-color: #121212;
-    color: #ffffff;
-    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+    background-color: #2c2c2c;
+    color: white;
 }
 
-/* Logout Button Styling */
-.logout-button {
-    background-color: #ff4d4d; /* Red background color */
-    color: white; /* White text color */
-    border: none; /* Remove default border */
-    padding: 10px 20px; /* Padding for better spacing */
-    border-radius: 5px; /* Rounded corners */
-    font-size: 16px; /* Font size */
-    font-weight: bold; /* Bold text */
-    cursor: pointer; /* Pointer cursor on hover */
-    transition: background-color 0.3s ease, transform 0.2s ease; /* Smooth transitions */
-    display: none; /* Initially hidden */
-    align-items: center;
-    gap: 8px; /* Space between icon and text */
-}
-
-/* Hover Effect */
-.logout-button:hover {
-    background-color: #e60000; /* Darker red on hover */
-    transform: scale(1.05); /* Slightly enlarge on hover */
-}
-
-/* Active Effect */
-.logout-button:active {
-    background-color: #cc0000; /* Even darker red on click */
-    transform: scale(0.95); /* Slightly shrink on click */
-}
-
-/* Icon Styling (if using an icon) */
-.logout-button::before {
-    content: '🚪'; /* Unicode door icon */
-    font-size: 18px; /* Icon size */
-}
-
-/* Dark mode toggle button */
-.dark-mode-button {
-    background-color: #fff;
-    color: #333;
-    border: none;
-    padding: 10px 20px;
-    font-size: 16px;
-    cursor: pointer;
-    border-radius: 20px;
-    transition: background-color 0.3s ease-in-out, transform 0.2s ease-in-out;
-}
-
-.dark-mode-button:hover {
-    background-color: #ddd;
-    transform: scale(1.05);
-}
-
-/* Dark mode toggle when active */
-body.dark-mode .dark-mode-button {
+body.dark-mode header {
     background-color: #333;
-    color: #fff;
 }
 
-body.dark-mode .dark-mode-button:hover {
+body.dark-mode .auth-container,
+body.dark-mode .dashboard-container {
+    background-color: #4a4a4a;
+    color: white;
+}
+
+body.dark-mode .chat-box {
+    background-color: #3a3a3a;
+}
+
+body.dark-mode .progress-bar {
     background-color: #555;
-    transform: scale(1.05);
 }
 
-/* Smooth fade for all elements */
-* {
-    transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    .auth-container, .dashboard-container {
-        margin: 20px;
-        padding: 15px;
-    }
-
-    .chat-box {
-        height: 150px;
-    }
-
-    .task-item {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .task-item button {
-        margin: 5px 0;
-        width: 100%;
-    }
-}
-
-.error-message {
-    color: #ff4444;
-    margin-top: 10px;
-    font-size: 14px;
-    padding: 10px;
-    background-color: #ffe6e6;
-    border-radius: 5px;
+body.dark-mode .progress {
+    background-color: #76c7c0;
 }
