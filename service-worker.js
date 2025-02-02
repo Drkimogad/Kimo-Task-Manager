@@ -1,13 +1,13 @@
 const CACHE_NAME = 'Kimo-Task-Manager-cache-v1'; // Update cache version
 const urlsToCache = [
-    'https://drkimogad.github.io/Kimo-Task-Manager/',                // Main page URL
-    'https://drkimogad.github.io/Kimo-Task-Manager/index.html',      // Ensure main HTML page is cached
+    'https://drkimogad.github.io/Kimo-Task-Manager/',
+    'https://drkimogad.github.io/Kimo-Task-Manager/index.html',
     'https://drkimogad.github.io/Kimo-Task-Manager/styles.css',
     'https://drkimogad.github.io/Kimo-Task-Manager/script.js',
     'https://drkimogad.github.io/Kimo-Task-Manager/manifest.json',
+    'https://drkimogad.github.io/Kimo-Task-Manager/favicon.ico',
     'https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png',
-    'https://www.flaticon.com/free-icons/routine" title="routine icons">Routine icons created by Flat Icons - Flaticon',
-    'https://drkimogad.github.io/Kimo-Task-Manager/offline.html'     // Ensure offline page is cached
+    'https://drkimogad.github.io/Kimo-Task-Manager/offline.html' // Ensure offline page is cached
 ];
 let deferredPrompt;
 
