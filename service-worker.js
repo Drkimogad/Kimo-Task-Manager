@@ -6,7 +6,7 @@ const urlsToCache = [
     'https://drkimogad.github.io/Kimo-Task-Manager/script.js',
     'https://drkimogad.github.io/Kimo-Task-Manager/manifest.json',
     'https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png',
-    'https://drkimogad.github.io/Kimo-Task-Manager/favicon.ico',
+    'https://www.flaticon.com/free-icons/routine" title="routine icons">Routine icons created by Flat Icons - Flaticon',
     'https://drkimogad.github.io/Kimo-Task-Manager/offline.html'     // Ensure offline page is cached
 ];
 let deferredPrompt;
