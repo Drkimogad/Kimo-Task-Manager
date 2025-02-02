@@ -1,17 +1,16 @@
 {
-    "short_name": "Kimo Task Manager",
-    "name": "Kimo Task Manager",
-    "description": "A simple task management app with voice commands.",
-    "start_url": "https://drkimogad.github.io/Kimo-Task-Manager/index.html",
-    "background_color": "#f4f4f9",
-    "display": "standalone",
-    "scope": "/",
-    "theme_color": "#007bff",
-    "icons": [
-        {
-            "src": "icon-192x192.png",
-            "sizes": "192x192",
-            "type": "image/png"
-        }
-    ]
+  "name": "Kimo-Task-Manager",
+  "short_name": "Kimo Task Manager",
+  "description": "A simple task management app with voice command",
+  "start_url": "https://drkimogad.github.io/Kimo-Task-Manager/index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
 }
