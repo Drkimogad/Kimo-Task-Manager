@@ -395,10 +395,95 @@ if (isLoggedIn()) {
 } else {
     showSignIn();
 }
+
+// Function to sync tasks when online
+async function syncTasks() {
+    const db = await openDB();
+    const transaction = db.transaction('tasks', 'readonly');
+    const store = transaction.objectStore('tasks');
+    const tasks = store.getAll();
+
+    tasks.onsuccess = async () => {
+        for (const task of tasks.result) {
+            await fetch('/api/tasks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(task),
+            });
+        }
+    };
+}
+
+// Open or create an IndexedDB database
+const openDB = () => {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open('TodoBotDB', 1);
+
+        request.onupgradeneeded = (event) => {
+            const db = event.target.result;
+            if (!db.objectStoreNames.contains('tasks')) {
+                db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
+            }
+        };
+
+        request.onsuccess = (event) => resolve(event.target.result);
+        request.onerror = (event) => reject(event.target.error);
+    });
+};
+
+// Add a task to IndexedDB
+const addTaskToDB = async (task) => {
+    const db = await openDB();
+    const transaction = db.transaction('tasks', 'readwrite');
+    const store = transaction.objectStore('tasks');
+    store.add(task);
+};
+
+// Voice recognition function
+function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition.');
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function () {
+        console.log('Voice recognition started. Try speaking into the microphone.');
+        // Kimo's greeting
+        const speech = new SpeechSynthesisUtterance("What can I do for you today?");
+        window.speechSynthesis.speak(speech);
+    };
+
+    recognition.onresult = function (event) {
+        if (event.results.length > 0) {
+            const voiceInput = event.results[0][0].transcript.toLowerCase();
+            console.log(`Voice Input: ${voiceInput}`);
+            handleUserInput(voiceInput);
+            // Kimo's confirmation
+            const speech = new SpeechSynthesisUtterance(`Task "${voiceInput}" received.`);
+            window.speechSynthesis.speak(speech);
+        }
+    };
+
+    recognition.onerror = function (event) {
+        console.error('Speech recognition error', event);
+    };
+
+    recognition.onend = function () {
+        console.log('Voice recognition ended.');
+    };
+
+    recognition.start();
+}
+
 //JavaScript Snippet to Check for Updates
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        navigator.serviceWorker.register('https://drkimogad.github.io/Pet-Health-Tracker/service-worker.js')
+        navigator.serviceWorker.register('https://drkimogad.github.io/Kimo-Task-Manager/service-worker.js')
             .then((registration) => {
                 console.log('Service Worker registered with scope:', registration.scope);
                 // Check for service worker updates
