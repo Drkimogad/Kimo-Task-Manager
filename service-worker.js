@@ -5,6 +5,7 @@ const urlsToCache = [
     'https://drkimogad.github.io/Kimo-Task-Manager/styles.css',
     'https://drkimogad.github.io/Kimo-Task-Manager/script.js',
     'https://drkimogad.github.io/Kimo-Task-Manager/manifest.json',
+    'https://drkimogad.github.io/Kimo-Task-Manager/service-worker.js',
     'https://drkimogad.github.io/Kimo-Task-Manager/favicon.ico',
     'https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png',
     'https://drkimogad.github.io/Kimo-Task-Manager/offline.html' // Ensure offline page is cached
