@@ -9,25 +9,6 @@ const urlsToCache = [
     'https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png',
     'https://drkimogad.github.io/Kimo-Task-Manager/offline.html' // Ensure offline page is cached
 ];
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (event) => {
-    event.preventDefault();
-    deferredPrompt = event;
-    document.getElementById('installButton').style.display = 'block';
-});
-
-document.getElementById('installButton').addEventListener('click', () => {
-    deferredPrompt.prompt();
-    deferredPrompt.userChoice.then((choiceResult) => {
-        if (choiceResult.outcome === 'accepted') {
-            console.log('User accepted the install prompt');
-        } else {
-            console.log('User dismissed the install prompt');
-        }
-        deferredPrompt = null;
-    });
-});
 
 // Install event: Cache necessary assets
 self.addEventListener('install', (event) => {
@@ -66,18 +47,18 @@ self.addEventListener('fetch', (event) => {
 
             // If the request is for an HTML file (navigation), return the offline page
             if (event.request.mode === 'navigate') {
-                return caches.match('/offline.html');  // Ensure offline.html is cached
+                return caches.match('https://drkimogad.github.io/Kimo-Task-Manager/offline.html');  // Ensure offline.html is cached
             }
 
             console.log('Fetching from network:', event.request.url);
             return fetch(event.request).catch(() => {
                 // Offline fallback if fetch fails (e.g., user is offline)
-                return caches.match('/offline.html');  // Ensure offline.html is cached
+                return caches.match('https://drkimogad.github.io/Kimo-Task-Manager/offline.html');  // Ensure offline.html is cached
             });
         }).catch((err) => {
             console.error('Error fetching:', err);
             // In case of any unexpected errors, fallback to offline.html
-            return caches.match('/offline.html');
+            return caches.match('https://drkimogad.github.io/Kimo-Task-Manager/offline.html');
         })
     );
 });
@@ -103,6 +84,14 @@ self.addEventListener('activate', (event) => {
     );
 });
 
+
+// NEW: Check for updates and fetch new service worker
+self.addEventListener('message', (event) => {
+    if (event.data.action === 'skipWaiting') {
+        self.skipWaiting(); // Skip waiting and immediately activate the new service worker
+    }
+});
+
 // Push notifications
 self.addEventListener('push', (event) => {
     const options = {
@@ -114,13 +103,6 @@ self.addEventListener('push', (event) => {
     event.waitUntil(
         self.registration.showNotification('Kimo-Task-Manager Reminder', options)
     );
-});
-
-// Check for updates and fetch new service worker
-self.addEventListener('message', (event) => {
-    if (event.data.action === 'skipWaiting') {
-        self.skipWaiting(); // Skip waiting and immediately activate the new service worker
-    }
 });
 
 // Background Sync for offline tasks
