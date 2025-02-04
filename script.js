@@ -343,6 +343,7 @@ function displayTasks() {
                 ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
             </span>
             <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
+            <button class="edit" onclick="editTask(${index})">Edit</button>
             <button class="delete" onclick="deleteTask(${index})">Delete</button>
         `;
         taskList.appendChild(li);
@@ -369,6 +370,20 @@ function deleteTask(index) {
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
     updateProgressBar();
+}
+
+// Edit a task
+function editTask(index) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const task = tasks[index];
+    if (task) {
+        const newDescription = prompt('Edit task description:', task.description);
+        if (newDescription !== null) {
+            task.description = newDescription;
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+        }
+    }
 }
 
 // Update progress bar
