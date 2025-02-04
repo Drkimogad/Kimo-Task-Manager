@@ -46,8 +46,7 @@ function renderHeader() {
 
     // Add logout functionality if user is logged in
     if (isLoggedIn()) {
-        const logoutButton = header.querySelector('#logoutButton');
-        logoutButton.addEventListener('click', logout);
+        header.querySelector('#logoutButton').addEventListener('click', logout);
     }
 
     return header;
@@ -137,107 +136,6 @@ async function handleSignUp(event) {
     }
 }
 
-// Data structure for shopping lists
-let shoppingLists = JSON.parse(localStorage.getItem('shoppingLists')) || [];
-
-// Function to create a shopping list
-function createShoppingList(listName) {
-    if (shoppingLists.some(list => list.name === listName)) {
-        updateChatBox(`Shopping list "${listName}" already exists.`);
-        speak(`Shopping list "${listName}" already exists.`);
-    } else {
-        shoppingLists.push({ name: listName, items: [] });
-        localStorage.setItem('shoppingLists', JSON.stringify(shoppingLists));
-        updateChatBox(`Shopping list "${listName}" created.`);
-        speak(`Shopping list "${listName}" created.`);
-    }
-}
-
-// Function to add an item to a shopping list
-function addItemToShoppingList(listName, item) {
-    const list = shoppingLists.find(list => list.name === listName);
-    if (list) {
-        list.items.push(item);
-        localStorage.setItem('shoppingLists', JSON.stringify(shoppingLists));
-        updateChatBox(`Added "${item}" to shopping list "${listName}".`);
-        speak(`Added "${item}" to shopping list "${listName}".`);
-    } else {
-        updateChatBox(`Shopping list "${listName}" not found.`);
-        speak(`Shopping list "${listName}" not found.`);
-    }
-}
-
-// Enhanced handleUserInput function
-function handleUserInput(input) {
-    console.log(`Handling user input: ${input}`);
-    if (input.includes('create shopping list')) {
-        const listName = input.replace('create shopping list', '').trim();
-        if (listName) {
-            createShoppingList(listName);
-        } else {
-            updateChatBox('Please specify a name for the shopping list.');
-            speak('Please specify a name for the shopping list.');
-        }
-    } else if (input.includes('add to shopping list')) {
-        const parts = input.split('add to shopping list');
-        const listName = parts[0].trim();
-        const item = parts[1].trim();
-        if (listName && item) {
-            addItemToShoppingList(listName, item);
-        } else {
-            updateChatBox('Please specify both the shopping list name and the item to add.');
-            speak('Please specify both the shopping list name and the item to add.');
-        }
-    } else if (input.includes('add task') || input.includes('create task')) {
-        const taskDetails = parseTaskInput(input);
-        if (taskDetails.description) {
-            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
-            updateChatBox(`Task "${taskDetails.description}" added.`);
-            speak(`Task "${taskDetails.description}" added.`);
-        } else {
-            updateChatBox('Please specify a task.');
-            speak('Please specify a task.');
-        }
-    } else if (input.includes('delete task')) {
-        const taskId = parseInt(input.replace('delete task', '').trim());
-        if (taskId && !isNaN(taskId)) {
-            deleteTask(taskId - 1); // Assuming task IDs start from 1
-            updateChatBox(`Task ${taskId} deleted.`);
-            speak(`Task ${taskId} deleted.`);
-        } else {
-            updateChatBox('Please specify a valid task ID to delete.');
-            speak('Please specify a valid task ID to delete.');
-        }
-    } else if (input.includes('mark as done')) {
-        const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
-        if (taskId && !isNaN(taskId)) {
-            markTaskAsDone(taskId - 1);
-            updateChatBox(`Task ${taskId} marked as done.`);
-            speak(`Task ${taskId} marked as done.`);
-        } else {
-            updateChatBox('Please specify a valid task ID to mark as done.');
-            speak('Please specify a valid task ID to mark as done.');
-        }
-    } else {
-        updateChatBox('Sorry, I didn\'t understand that. Try "create shopping list", "add to shopping list", "add task", "delete task", or "mark as done".');
-        speak('Sorry, I didn\'t understand that. Try "create shopping list", "add to shopping list", "add task", "delete task", or "mark as done".');
-    }
-}
-
-// Function to display shopping lists in the dashboard
-function displayShoppingLists() {
-    const shoppingListContainer = document.createElement('div');
-    shoppingListContainer.innerHTML = '<h2>Your Shopping Lists</h2>';
-    const listElement = document.createElement('ul');
-    shoppingLists.forEach(list => {
-        const li = document.createElement('li');
-        li.textContent = `${list.name}: ${list.items.join(', ')}`;
-        listElement.appendChild(li);
-    });
-    shoppingListContainer.appendChild(listElement);
-    document.getElementById('content').appendChild(shoppingListContainer);
-}
-
 // Render Dashboard
 function showDashboard() {
     console.log("Rendering Dashboard");
@@ -298,16 +196,16 @@ function showDashboard() {
     });
 
     displayTasks();
-    displayShoppingLists();
     updateProgressBar();
 }
 
-// Parse task input for description, due date, priority, category, and subcategory
+// Parse task input for description, due date, priority, category, subcategory, and reminder time
 function parseTaskInput(input) {
     const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date
     const priorityMatch = input.match(/high|medium|low/i); // Extract priority
     const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food|.../i);
+    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food/i); // Extract subcategory
+    const reminderTimeMatch = input.match(/\d{1,2}:\d{2}/); // Extract reminder time (HH:MM format)
 
     return {
         description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
@@ -315,17 +213,87 @@ function parseTaskInput(input) {
         priority: priorityMatch ? priorityMatch[0] : 'Medium',
         category: categoryMatch ? categoryMatch[0] : 'Other',
         subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
+        reminderTime: reminderTimeMatch ? reminderTimeMatch[0] : null
     };
 }
 
-// Add a new task to the list
-function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium') {
+// Handle the user input to add/delete/update tasks
+function handleUserInput(input) {
+    console.log(`Handling user input: ${input}`);
+    if (input.includes('add task') || input.includes('create task')) {
+        const taskDetails = parseTaskInput(input);
+        if (taskDetails.description) {
+            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.reminderTime);
+            updateChatBox(`Task "${taskDetails.description}" added.`);
+            speak(`Task "${taskDetails.description}" added.`);
+        } else {
+            updateChatBox('Please specify a task.');
+            speak('Please specify a task.');
+        }
+    } else if (input.includes('delete task')) {
+        const taskId = parseInt(input.replace('delete task', '').trim());
+        if (taskId && !isNaN(taskId)) {
+            deleteTask(taskId - 1); // Assuming task IDs start from 1
+            updateChatBox(`Task ${taskId} deleted.`);
+            speak(`Task ${taskId} deleted.`);
+        } else {
+            updateChatBox('Please specify a valid task ID to delete.');
+            speak('Please specify a valid task ID to delete.');
+        }
+    } else if (input.includes('mark as done')) {
+        const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
+        if (taskId && !isNaN(taskId)) {
+            markTaskAsDone(taskId - 1);
+            updateChatBox(`Task ${taskId} marked as done.`);
+            speak(`Task ${taskId} marked as done.`);
+        } else {
+            updateChatBox('Please specify a valid task ID to mark as done.');
+            speak('Please specify a valid task ID to mark as done.');
+        }
+    } else {
+        updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+        speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+    }
+}
+
+// Update the chatbox with bot's response
+function updateChatBox(message) {
+    console.log(`Updating chatbox with message: ${message}`);
+    const chatBox = document.getElementById('chatBox');
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = `Bot: ${message}`;
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Add a new task to the list with reminder
+function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium', reminderTime = null) {
     console.log(`Adding task: ${description}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.push({ id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false });
+    const task = { id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false, reminderTime };
+    tasks.push(task);
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
     updateProgressBar();
+    if (reminderTime) {
+        setReminder(task);
+    }
+}
+
+// Set a reminder for a task
+function setReminder(task) {
+    const now = new Date();
+    const reminderDate = new Date(`${now.toDateString()} ${task.reminderTime}`);
+    const timeout = reminderDate.getTime() - now.getTime();
+
+    if (timeout > 0) {
+        setTimeout(() => {
+            new Notification('Task Reminder', {
+                body: `Reminder for task: ${task.description}`,
+                icon: 'icon-192x192.png'
+            });
+        }, timeout);
+    }
 }
 
 // Display tasks in the task list
@@ -343,7 +311,6 @@ function displayTasks() {
                 ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
             </span>
             <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
-            <button class="edit" onclick="editTask(${index})">Edit</button>
             <button class="delete" onclick="deleteTask(${index})">Delete</button>
         `;
         taskList.appendChild(li);
@@ -370,20 +337,6 @@ function deleteTask(index) {
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
     updateProgressBar();
-}
-
-// Edit a task
-function editTask(index) {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const task = tasks[index];
-    if (task) {
-        const newDescription = prompt('Edit task description:', task.description);
-        if (newDescription !== null) {
-            task.description = newDescription;
-            localStorage.setItem('tasks', JSON.stringify(tasks));
-            displayTasks();
-        }
-    }
 }
 
 // Update progress bar
@@ -415,7 +368,7 @@ function startVoiceRecognition() {
         if (event.results.length > 0) {
             const voiceInput = event.results[0][0].transcript.toLowerCase();
             console.log(`Voice Input: ${voiceInput}`);
-            handleUserInput(voiceInput);
+            handleVoiceCommand(voiceInput);
         }
     };
 
@@ -428,6 +381,22 @@ function startVoiceRecognition() {
     };
 
     recognition.start();
+}
+
+// Handle voice commands for tasks
+function handleVoiceCommand(input) {
+    if (input.includes('create a shopping list')) {
+        addTask('Shopping List', 'Shopping', '', null, 'High');
+        updateChatBox('Shopping list created.');
+        speak('Shopping list created.');
+    } else if (input.includes('add groceries to shopping list')) {
+        addTask('Groceries', 'Shopping', 'Groceries', null, 'Medium');
+        updateChatBox('Groceries added to shopping list.');
+        speak('Groceries added to shopping list.');
+    } else {
+        updateChatBox('Sorry, I didn\'t understand that. Please try again.');
+        speak('Sorry, I didn\'t understand that. Please try again.');
+    }
 }
 
 // Speak a message
@@ -463,4 +432,4 @@ if (isLoggedIn()) {
     showDashboard();
 } else {
     showSignIn();
-                                                               }
+}
