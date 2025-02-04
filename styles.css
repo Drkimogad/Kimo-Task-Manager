@@ -184,3 +184,106 @@ body.dark-mode .progress-bar {
 body.dark-mode .progress {
     background-color: #76c7c0;
 }
+/* Styles for Shopping Lists */
+.shopping-list-container {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.shopping-list-container h2 {
+    margin-bottom: 10px;
+    font-size: 1.5em;
+    color: #333;
+}
+
+.shopping-list-container ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.shopping-list-container li {
+    padding: 8px;
+    margin: 5px 0;
+    background-color: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Styles for Task Templates */
+#taskTemplates {
+    margin-top: 10px;
+}
+
+#taskTemplates ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+#taskTemplates li {
+    padding: 8px;
+    margin: 5px 0;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#taskTemplates li:hover {
+    background-color: #ddd;
+}
+
+/* Chatbox Styles */
+.chat-box {
+    height: 150px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background-color: #fff;
+}
+
+.chat-box div {
+    margin-bottom: 8px;
+    padding: 6px;
+    background-color: #f1f1f1;
+    border-radius: 4px;
+}
+
+/* Dark Mode Adjustments */
+.dark-mode .shopping-list-container {
+    background-color: #333;
+    color: #fff;
+}
+
+.dark-mode .shopping-list-container li {
+    background-color: #444;
+    border-color: #555;
+    color: #fff;
+}
+
+.dark-mode .chat-box {
+    background-color: #444;
+    border-color: #555;
+    color: #fff;
+}
+
+.dark-mode .chat-box div {
+    background-color: #555;
+    color: #fff;
+}
+
+.dark-mode #taskTemplates li {
+    background-color: #555;
+    color: #fff;
+}
+
+.dark-mode #taskTemplates li:hover {
+    background-color: #666;
+}
