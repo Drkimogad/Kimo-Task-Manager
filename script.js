@@ -199,12 +199,13 @@ function showDashboard() {
     updateProgressBar();
 }
 
-// Parse task input for description, due date, priority, category, and subcategory
+// Parse task input for description, due date, priority, category, subcategory, and reminder time
 function parseTaskInput(input) {
     const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date
     const priorityMatch = input.match(/high|medium|low/i); // Extract priority
     const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food|.../i);
+    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food/i); // Extract subcategory
+    const reminderTimeMatch = input.match(/\d{1,2}:\d{2}/); // Extract reminder time (HH:MM format)
 
     return {
         description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
@@ -212,6 +213,7 @@ function parseTaskInput(input) {
         priority: priorityMatch ? priorityMatch[0] : 'Medium',
         category: categoryMatch ? categoryMatch[0] : 'Other',
         subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
+        reminderTime: reminderTimeMatch ? reminderTimeMatch[0] : null
     };
 }
 
@@ -221,7 +223,7 @@ function handleUserInput(input) {
     if (input.includes('add task') || input.includes('create task')) {
         const taskDetails = parseTaskInput(input);
         if (taskDetails.description) {
-            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority);
+            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.reminderTime);
             updateChatBox(`Task "${taskDetails.description}" added.`);
             speak(`Task "${taskDetails.description}" added.`);
         } else {
@@ -264,14 +266,34 @@ function updateChatBox(message) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Add a new task to the list
-function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium') {
+// Add a new task to the list with reminder
+function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium', reminderTime = null) {
     console.log(`Adding task: ${description}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.push({ id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false });
+    const task = { id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false, reminderTime };
+    tasks.push(task);
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
     updateProgressBar();
+    if (reminderTime) {
+        setReminder(task);
+    }
+}
+
+// Set a reminder for a task
+function setReminder(task) {
+    const now = new Date();
+    const reminderDate = new Date(`${now.toDateString()} ${task.reminderTime}`);
+    const timeout = reminderDate.getTime() - now.getTime();
+
+    if (timeout > 0) {
+        setTimeout(() => {
+            new Notification('Task Reminder', {
+                body: `Reminder for task: ${task.description}`,
+                icon: 'icon-192x192.png'
+            });
+        }, timeout);
+    }
 }
 
 // Display tasks in the task list
@@ -346,7 +368,7 @@ function startVoiceRecognition() {
         if (event.results.length > 0) {
             const voiceInput = event.results[0][0].transcript.toLowerCase();
             console.log(`Voice Input: ${voiceInput}`);
-            handleUserInput(voiceInput);
+            handleVoiceCommand(voiceInput);
         }
     };
 
@@ -359,6 +381,22 @@ function startVoiceRecognition() {
     };
 
     recognition.start();
+}
+
+// Handle voice commands for tasks
+function handleVoiceCommand(input) {
+    if (input.includes('create a shopping list')) {
+        addTask('Shopping List', 'Shopping', '', null, 'High');
+        updateChatBox('Shopping list created.');
+        speak('Shopping list created.');
+    } else if (input.includes('add groceries to shopping list')) {
+        addTask('Groceries', 'Shopping', 'Groceries', null, 'Medium');
+        updateChatBox('Groceries added to shopping list.');
+        speak('Groceries added to shopping list.');
+    } else {
+        updateChatBox('Sorry, I didn\'t understand that. Please try again.');
+        speak('Sorry, I didn\'t understand that. Please try again.');
+    }
 }
 
 // Speak a message
@@ -394,116 +432,4 @@ if (isLoggedIn()) {
     showDashboard();
 } else {
     showSignIn();
-}
-
-// Function to sync tasks when online
-async function syncTasks() {
-    const db = await openDB();
-    const transaction = db.transaction('tasks', 'readonly');
-    const store = transaction.objectStore('tasks');
-    const tasks = store.getAll();
-
-    tasks.onsuccess = async () => {
-        for (const task of tasks.result) {
-            await fetch('/api/tasks', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(task),
-            });
-        }
-    };
-}
-
-// Open or create an IndexedDB database
-const openDB = () => {
-    return new Promise((resolve, reject) => {
-        const request = indexedDB.open('TodoBotDB', 1);
-
-        request.onupgradeneeded = (event) => {
-            const db = event.target.result;
-            if (!db.objectStoreNames.contains('tasks')) {
-                db.createObjectStore('tasks', { keyPath: 'id', autoIncrement: true });
-            }
-        };
-
-        request.onsuccess = (event) => resolve(event.target.result);
-        request.onerror = (event) => reject(event.target.error);
-    });
-};
-
-// Add a task to IndexedDB
-const addTaskToDB = async (task) => {
-    const db = await openDB();
-    const transaction = db.transaction('tasks', 'readwrite');
-    const store = transaction.objectStore('tasks');
-    store.add(task);
-};
-
-// Voice recognition function
-function startVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert('Your browser does not support speech recognition.');
-        return;
-    }
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onstart = function () {
-        console.log('Voice recognition started. Try speaking into the microphone.');
-        // Kimo's greeting
-        const speech = new SpeechSynthesisUtterance("What can I do for you today?");
-        window.speechSynthesis.speak(speech);
-    };
-
-    recognition.onresult = function (event) {
-        if (event.results.length > 0) {
-            const voiceInput = event.results[0][0].transcript.toLowerCase();
-            console.log(`Voice Input: ${voiceInput}`);
-            handleUserInput(voiceInput);
-            // Kimo's confirmation
-            const speech = new SpeechSynthesisUtterance(`Task "${voiceInput}" received.`);
-            window.speechSynthesis.speak(speech);
-        }
-    };
-
-    recognition.onerror = function (event) {
-        console.error('Speech recognition error', event);
-    };
-
-    recognition.onend = function () {
-        console.log('Voice recognition ended.');
-    };
-
-    recognition.start();
-}
-
-//JavaScript Snippet to Check for Updates
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('https://drkimogad.github.io/Kimo-Task-Manager/service-worker.js')
-            .then((registration) => {
-                console.log('Service Worker registered with scope:', registration.scope);
-                // Check for service worker updates
-                registration.update();
-
-                // Listen for when a new service worker is available and update it
-                registration.addEventListener('updatefound', () => {
-                    const installingWorker = registration.installing;
-                    installingWorker.addEventListener('statechange', () => {
-                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            // New version available, notify user and skip waiting
-                            if (confirm('A new version of the app is available. Would you like to update?')) {
-                                installingWorker.postMessage({ action: 'skipWaiting' });
-                            }
-                        }
-                    });
-                });
-            })
-            .catch((error) => {
-                console.error('Error registering service worker:', error);
-            });
-    });
 }
