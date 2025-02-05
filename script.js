@@ -20,9 +20,10 @@ async function hashPassword(password) {
 
 // Logout function
 function logout() {
+    console.log("Logout button clicked"); // Debugging line
     localStorage.removeItem('loggedIn');
     localStorage.removeItem('currentUser');
-    showSignIn();
+    showSignIn(); // Redirect to the sign-in page
 }
 
 // Render Header
@@ -41,8 +42,10 @@ function renderHeader() {
         </div>
     `;
 
-    if (isLoggedIn()) {
-        header.querySelector('#logoutButton').addEventListener('click', logout);
+    // Attach event listener to the logout button if it exists
+    const logoutButton = header.querySelector('#logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
     }
 
     return header;
@@ -50,7 +53,12 @@ function renderHeader() {
 
 // Render Auth Page (Helper function for sign-in and sign-up pages)
 function renderAuthPage(authType) {
+    console.log(`Rendering ${authType} page`); // Debugging line
     const content = document.getElementById('content');
+    if (!content) {
+        console.error("Content element not found!"); // Debugging line
+        return;
+    }
     content.innerHTML = ''; // Clear existing content
     content.appendChild(renderHeader()); // Add header
 
@@ -88,6 +96,7 @@ function renderAuthPage(authType) {
 
 // Render Sign-In Page
 function showSignIn() {
+    console.log("Redirecting to sign-in page"); // Debugging line
     renderAuthPage('signIn');
 }
 
