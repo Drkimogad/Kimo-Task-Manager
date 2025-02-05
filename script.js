@@ -1,5 +1,5 @@
 let currentUser = null; // For keeping track of logged-in user
-let isDarkMode = false; // Track dark mode state
+let isDarkMode = localStorage.getItem('isDarkMode') === 'true'; // Track dark mode state
 
 // Helper functions for login state
 function isLoggedIn() {
@@ -20,11 +20,8 @@ async function hashPassword(password) {
 
 // Logout function
 function logout() {
-    // Clear the logged-in state and current user from localStorage
     localStorage.removeItem('loggedIn');
     localStorage.removeItem('currentUser');
-
-    // Redirect to the sign-in page
     showSignIn();
 }
 
@@ -44,7 +41,6 @@ function renderHeader() {
         </div>
     `;
 
-    // Add logout functionality if user is logged in
     if (isLoggedIn()) {
         header.querySelector('#logoutButton').addEventListener('click', logout);
     }
@@ -138,7 +134,6 @@ async function handleSignUp(event) {
 
 // Render Dashboard
 function showDashboard() {
-    console.log("Rendering Dashboard");
     if (!isLoggedIn()) {
         showSignIn();
         return;
@@ -154,6 +149,17 @@ function showDashboard() {
             <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
             <div class="progress-bar">
                 <div id="progress" class="progress"></div>
+            </div>
+            <div class="task-filters">
+                <label for="filterCategory">Filter by Category:</label>
+                <select id="filterCategory">
+                    <option value="All">All</option>
+                    <option value="Work">Work</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Exercise">Exercise</option>
+                    <option value="Personal">Personal</option>
+                </select>
+                <button id="applyFilter">Apply Filter</button>
             </div>
             <div class="chat-container">
                 <div id="chatBox" class="chat-box"></div>
@@ -173,7 +179,13 @@ function showDashboard() {
         </div>
     `;
 
-    // Handle the task input and interaction with bot
+    // Apply task filter
+    document.getElementById('applyFilter').addEventListener('click', function () {
+        const filterCategory = document.getElementById('filterCategory').value;
+        displayTasks(filterCategory);
+    });
+
+    // Handle task input
     document.getElementById('taskInputForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const taskInput = document.getElementById('taskInput').value.toLowerCase();
@@ -185,14 +197,13 @@ function showDashboard() {
     document.getElementById('showTemplates').addEventListener('click', showTaskTemplates);
 
     // Voice command button
-    document.getElementById('startVoice').addEventListener('click', function () {
-        startVoiceRecognition();
-    });
+    document.getElementById('startVoice').addEventListener('click', startVoiceRecognition);
 
     // Dark mode toggle
     document.getElementById('toggleDarkMode').addEventListener('click', function () {
         isDarkMode = !isDarkMode;
         document.body.classList.toggle('dark-mode', isDarkMode);
+        localStorage.setItem('isDarkMode', isDarkMode);
     });
 
     displayTasks();
@@ -201,19 +212,19 @@ function showDashboard() {
 
 // Parse task input for description, due date, priority, category, subcategory, and reminder time
 function parseTaskInput(input) {
-    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date
+    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date (MM/DD/YYYY)
+    const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i); // Extract time (HH:MM AM/PM)
     const priorityMatch = input.match(/high|medium|low/i); // Extract priority
     const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
     const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food/i); // Extract subcategory
-    const reminderTimeMatch = input.match(/\d{1,2}:\d{2}/); // Extract reminder time (HH:MM format)
 
     return {
         description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
         dueDate: dueDateMatch ? dueDateMatch[0] : null,
+        time: timeMatch ? timeMatch[0] : null,
         priority: priorityMatch ? priorityMatch[0] : 'Medium',
         category: categoryMatch ? categoryMatch[0] : 'Other',
         subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
-        reminderTime: reminderTimeMatch ? reminderTimeMatch[0] : null
     };
 }
 
@@ -223,7 +234,7 @@ function handleUserInput(input) {
     if (input.includes('add task') || input.includes('create task')) {
         const taskDetails = parseTaskInput(input);
         if (taskDetails.description) {
-            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.reminderTime);
+            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
             updateChatBox(`Task "${taskDetails.description}" added.`);
             speak(`Task "${taskDetails.description}" added.`);
         } else {
@@ -268,7 +279,12 @@ function updateChatBox(message) {
 
 // Add a new task to the list with reminder
 function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium', reminderTime = null) {
-    console.log(`Adding task: ${description}`);
+    if (!description) {
+        updateChatBox('Error: Task description cannot be empty.');
+        speak('Error: Task description cannot be empty.');
+        return;
+    }
+
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     const task = { id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false, reminderTime };
     tasks.push(task);
@@ -297,23 +313,25 @@ function setReminder(task) {
 }
 
 // Display tasks in the task list
-function displayTasks() {
+function displayTasks(filterCategory = 'All') {
     console.log("Displaying tasks");
     const taskList = document.getElementById('taskList');
     taskList.innerHTML = '';
 
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     tasks.forEach((task, index) => {
-        const li = document.createElement('li');
-        li.classList.add('task-item');
-        li.innerHTML = `
-            <span class="task-description ${task.done ? 'done' : ''}">
-                ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
-            </span>
-            <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
-            <button class="delete" onclick="deleteTask(${index})">Delete</button>
-        `;
-        taskList.appendChild(li);
+        if (filterCategory === 'All' || task.category === filterCategory) {
+            const li = document.createElement('li');
+            li.classList.add('task-item');
+            li.innerHTML = `
+                <span class="task-description ${task.done ? 'done' : ''}">
+                    ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
+                </span>
+                <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
+                <button class="delete" onclick="deleteTask(${index})">Delete</button>
+            `;
+            taskList.appendChild(li);
+        }
     });
 }
 
@@ -385,18 +403,49 @@ function startVoiceRecognition() {
 
 // Handle voice commands for tasks
 function handleVoiceCommand(input) {
-    if (input.includes('create a shopping list')) {
-        addTask('Shopping List', 'Shopping', '', null, 'High');
-        updateChatBox('Shopping list created.');
-        speak('Shopping list created.');
-    } else if (input.includes('add groceries to shopping list')) {
-        addTask('Groceries', 'Shopping', 'Groceries', null, 'Medium');
-        updateChatBox('Groceries added to shopping list.');
-        speak('Groceries added to shopping list.');
-    } else {
-        updateChatBox('Sorry, I didn\'t understand that. Please try again.');
-        speak('Sorry, I didn\'t understand that. Please try again.');
-    }
+    updateChatBox(`Processing: "${input}"`);
+    speak(`Processing: "${input}"`);
+
+    setTimeout(() => {
+        if (input.includes('add task') || input.includes('create task')) {
+            const taskDetails = parseTaskInput(input);
+            if (taskDetails.description) {
+                addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
+                updateChatBox(`Task "${taskDetails.description}" added.`);
+                speak(`Task "${taskDetails.description}" added.`);
+            } else {
+                updateChatBox('Please specify a task.');
+                speak('Please specify a task.');
+            }
+        } else if (input.includes('delete task')) {
+            const taskId = parseInt(input.replace('delete task', '').trim());
+            if (taskId && !isNaN(taskId)) {
+                deleteTask(taskId - 1);
+                updateChatBox(`Task ${taskId} deleted.`);
+                speak(`Task ${taskId} deleted.`);
+            } else {
+                updateChatBox('Please specify a valid task ID to delete.');
+                speak('Please specify a valid task ID to delete.');
+            }
+        } else if (input.includes('mark as done')) {
+            const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
+            if (taskId && !isNaN(taskId)) {
+                markTaskAsDone(taskId - 1);
+                updateChatBox(`Task ${taskId} marked as done.`);
+                speak(`Task ${taskId} marked as done.`);
+            } else {
+                updateChatBox('Please specify a valid task ID to mark as done.');
+                speak('Please specify a valid task ID to mark as done.');
+            }
+        } else if (input.includes('show tasks')) {
+            displayTasks();
+            updateChatBox('Here are your tasks.');
+            speak('Here are your tasks.');
+        } else {
+            updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+            speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+        }
+    }, 1000); // Simulate 1-second processing delay
 }
 
 // Speak a message
@@ -419,6 +468,7 @@ function showTaskTemplates() {
         li.textContent = template;
         li.addEventListener('click', () => {
             document.getElementById('taskInput').value = template;
+            handleUserInput(template); // Automatically process the template
         });
         templateList.appendChild(li);
     });
