@@ -1,113 +1,7 @@
 let currentUser = null; // For keeping track of logged-in user
 let isDarkMode = localStorage.getItem('isDarkMode') === 'true'; // Track dark mode state
 
-document.addEventListener("DOMContentLoaded", function () {
-    const taskInput = document.getElementById("taskInput");
-    const addTaskBtn = document.getElementById("addTaskBtn");
-    const taskList = document.getElementById("taskList");
-    const taskTemplates = document.getElementById("taskTemplates");
-    const categorySelect = document.getElementById("categorySelect");
-    const darkModeToggle = document.getElementById("darkModeToggle");
-    const progressBar = document.getElementById("progress");
-    const logoutBtn = document.getElementById("logoutBtn");
-    const reminderInput = document.getElementById("reminderInput");
-
-    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
-
-    function saveTasks() {
-        localStorage.setItem("tasks", JSON.stringify(tasks));
-    }
-
-    function updateProgressBar() {
-        const totalTasks = tasks.length;
-        const completedTasks = tasks.filter(task => task.completed).length;
-        const progress = totalTasks > 0 ? (completedTasks / totalTasks) * 100 : 0;
-        progressBar.style.width = `${progress}%`;
-    }
-
-    function renderTasks() {
-        taskList.innerHTML = "";
-        tasks.forEach((task, index) => {
-            const taskItem = document.createElement("div");
-            taskItem.classList.add("task-item");
-            if (task.completed) {
-                taskItem.classList.add("done");
-            }
-
-            taskItem.innerHTML = `
-                <span class="task-description">${task.text} <span class="priority-${task.priority.toLowerCase()}">(${task.priority})</span></span>
-                <small>${task.category}</small>
-                <input type="date" value="${task.reminder}" class="task-reminder" data-index="${index}">
-                <button class="completeTaskBtn" data-index="${index}">✔</button>
-                <button class="deleteTaskBtn" data-index="${index}">❌</button>
-            `;
-
-            taskList.appendChild(taskItem);
-        });
-
-        updateProgressBar();
-        saveTasks();
-    }
-
-    addTaskBtn.addEventListener("click", function () {
-        const taskText = taskInput.value.trim();
-        const category = categorySelect.value;
-        const reminder = reminderInput.value;
-
-        if (taskText !== "") {
-            tasks.push({ text: taskText, completed: false, priority: "Medium", category, reminder });
-            taskInput.value = "";
-            reminderInput.value = "";
-            renderTasks();
-        }
-    });
-
-    taskList.addEventListener("click", function (e) {
-        if (e.target.classList.contains("completeTaskBtn")) {
-            const index = e.target.dataset.index;
-            tasks[index].completed = !tasks[index].completed;
-            renderTasks();
-        }
-
-        if (e.target.classList.contains("deleteTaskBtn")) {
-            const index = e.target.dataset.index;
-            tasks.splice(index, 1);
-            renderTasks();
-        }
-    });
-
-    taskTemplates.addEventListener("click", function (e) {
-        if (e.target.tagName === "LI") {
-            taskInput.value = e.target.innerText;
-        }
-    });
-
-    darkModeToggle.addEventListener("click", function () {
-        document.body.classList.toggle("dark-mode");
-        localStorage.setItem("darkMode", document.body.classList.contains("dark-mode"));
-    });
-
-    taskList.addEventListener("input", function (e) {
-        if (e.target.classList.contains("task-reminder")) {
-            const index = e.target.dataset.index;
-            tasks[index].reminder = e.target.value;
-            saveTasks();
-        }
-    });
-
-    logoutBtn.addEventListener("click", function () {
-        localStorage.removeItem("tasks");
-        window.location.href = "login.html";
-    });
-
-    if (localStorage.getItem("darkMode") === "true") {
-        document.body.classList.add("dark-mode");
-    }
-
-    renderTasks();
-});
-
-// The rest of the original script.js content...
+// Helper functions for login state
 function isLoggedIn() {
     return localStorage.getItem('loggedIn') === 'true';
 }
@@ -139,7 +33,11 @@ function renderHeader() {
         <div class="header-container">
             <h1>Kimo Task Manager</h1>
             <nav>
-                ${isLoggedIn() ? `<button id="logoutButton">Logout</button>` : `<span>A simple task management app with voice commands.</span>`}
+                ${isLoggedIn() ? `
+                    <button id="logoutButton">Logout</button>
+                ` : `
+                    <span>A simple task management app with voice commands.</span>
+                `}
             </nav>
         </div>
     `;
@@ -186,13 +84,12 @@ function renderAuthPage(authType) {
         <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
     `;
 
-    const authContainer = document.createElement('div');
-    authContainer.className = 'auth-container';
-    authContainer.innerHTML = `
-        ${formHTML}
-        <p id="error-message" class="error-message"></p>
+    content.innerHTML += `
+        <div class="auth-container">
+            ${formHTML}
+            <p id="error-message" class="error-message"></p>
+        </div>
     `;
-    content.appendChild(authContainer);
 
     document.getElementById('authForm').addEventListener('submit', authType === 'signIn' ? handleSignIn : handleSignUp);
 }
@@ -254,55 +151,50 @@ function showDashboard() {
     currentUser = getLoggedInUser();
     const content = document.getElementById('content');
     content.innerHTML = ''; // Clear existing content
-
-    // Append header separately to preserve its event listeners
-    const header = renderHeader();
-    content.appendChild(header);
-
-    // Create dashboard container element
-    const dashboardContainer = document.createElement('div');
-    dashboardContainer.className = 'dashboard-container';
-    dashboardContainer.innerHTML = `
-        <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
-        <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
-        <div class="progress-bar">
-            <div id="progress" class="progress"></div>
-        </div>
-        <div class="task-filters">
-            <label for="filterCategory">Filter by Category:</label>
-            <select id="filterCategory">
-                <option value="All">All</option>
-                <option value="Work">Work</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Exercise">Exercise</option>
-                <option value="Personal">Personal</option>
-            </select>
-            <button id="applyFilter">Apply Filter</button>
-        </div>
-        <div class="chat-container">
-            <div id="chatBox" class="chat-box"></div>
-            <form id="taskInputForm">
-                <label for="taskInput">Ask me to add, delete, or update a task:</label>
-                <input type="text" id="taskInput" required>
-                <button type="submit">Send</button>
-                <button type="button" id="showTemplates">Show Task Templates</button>
-                <div id="taskTemplates"></div>
-            </form>
-            <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
-        </div>
-        <div class="task-container">
-            <h2>Your Tasks</h2>
-            <ul id="taskList"></ul>
+    content.appendChild(renderHeader()); // Add header
+    content.innerHTML += `
+        <div class="dashboard-container">
+            <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
+            <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
+            <div class="progress-bar">
+                <div id="progress" class="progress"></div>
+            </div>
+            <div class="task-filters">
+                <label for="filterCategory">Filter by Category:</label>
+                <select id="filterCategory">
+                    <option value="All">All</option>
+                    <option value="Work">Work</option>
+                    <option value="Shopping">Shopping</option>
+                    <option value="Exercise">Exercise</option>
+                    <option value="Personal">Personal</option>
+                </select>
+                <button id="applyFilter">Apply Filter</button>
+            </div>
+            <div class="chat-container">
+                <div id="chatBox" class="chat-box"></div>
+                <form id="taskInputForm">
+                    <label for="taskInput">Ask me to add, delete, or update a task:</label>
+                    <input type="text" id="taskInput" required>
+                    <button type="submit">Send</button>
+                    <button type="button" id="showTemplates">Show Task Templates</button>
+                    <div id="taskTemplates"></div>
+                </form>
+                <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
+            </div>
+            <div class="task-container">
+                <h2>Your Tasks</h2>
+                <ul id="taskList"></ul>
+            </div>
         </div>
     `;
-    content.appendChild(dashboardContainer);
 
-    // Attach event listeners for dashboard elements
+    // Apply task filter
     document.getElementById('applyFilter').addEventListener('click', function () {
         const filterCategory = document.getElementById('filterCategory').value;
         displayTasks(filterCategory);
     });
 
+    // Handle task input
     document.getElementById('taskInputForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const taskInput = document.getElementById('taskInput').value.toLowerCase();
@@ -310,9 +202,13 @@ function showDashboard() {
         document.getElementById('taskInput').value = ''; // Clear input field
     });
 
+    // Show task templates
     document.getElementById('showTemplates').addEventListener('click', showTaskTemplates);
+
+    // Voice command button
     document.getElementById('startVoice').addEventListener('click', startVoiceRecognition);
 
+    // Dark mode toggle
     document.getElementById('toggleDarkMode').addEventListener('click', function () {
         isDarkMode = !isDarkMode;
         document.body.classList.toggle('dark-mode', isDarkMode);
@@ -329,7 +225,7 @@ function parseTaskInput(input) {
     const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i); // Extract time (HH:MM AM/PM)
     const priorityMatch = input.match(/high|medium|low/i); // Extract priority
     const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog parks/i);
+    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food/i); // Extract subcategory
 
     return {
         description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
@@ -449,3 +345,150 @@ function displayTasks(filterCategory = 'All') {
 }
 
 // Mark a task as done or undo
+function markTaskAsDone(index) {
+    console.log(`Marking task as done: ${index}`);
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    if (tasks[index]) {
+        tasks[index].done = !tasks[index].done; // Toggle done state
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        displayTasks();
+        updateProgressBar();
+    }
+}
+
+// Delete a task
+function deleteTask(index) {
+    console.log(`Deleting task: ${index}`);
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks.splice(index, 1);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    displayTasks();
+    updateProgressBar();
+}
+
+// Update progress bar
+function updateProgressBar() {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const completedTasks = tasks.filter(task => task.done).length;
+    const progress = (completedTasks / tasks.length) * 100 || 0;
+    document.getElementById('progress').style.width = `${progress}%`;
+}
+
+// Start Speech Recognition
+function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition.');
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function () {
+        console.log('Voice recognition started. Try speaking into the microphone.');
+        speak("Hello, how may I help?");
+    };
+
+    recognition.onresult = function (event) {
+        if (event.results.length > 0) {
+            const voiceInput = event.results[0][0].transcript.toLowerCase();
+            console.log(`Voice Input: ${voiceInput}`);
+            handleVoiceCommand(voiceInput);
+        }
+    };
+
+    recognition.onerror = function (event) {
+        console.error('Speech recognition error', event);
+    };
+
+    recognition.onend = function () {
+        console.log('Voice recognition ended.');
+    };
+
+    recognition.start();
+}
+
+// Handle voice commands for tasks
+function handleVoiceCommand(input) {
+    updateChatBox(`Processing: "${input}"`);
+    speak(`Processing: "${input}"`);
+
+    setTimeout(() => {
+        if (input.includes('add task') || input.includes('create task')) {
+            const taskDetails = parseTaskInput(input);
+            if (taskDetails.description) {
+                addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
+                updateChatBox(`Task "${taskDetails.description}" added.`);
+                speak(`Task "${taskDetails.description}" added.`);
+            } else {
+                updateChatBox('Please specify a task.');
+                speak('Please specify a task.');
+            }
+        } else if (input.includes('delete task')) {
+            const taskId = parseInt(input.replace('delete task', '').trim());
+            if (taskId && !isNaN(taskId)) {
+                deleteTask(taskId - 1);
+                updateChatBox(`Task ${taskId} deleted.`);
+                speak(`Task ${taskId} deleted.`);
+            } else {
+                updateChatBox('Please specify a valid task ID to delete.');
+                speak('Please specify a valid task ID to delete.');
+            }
+        } else if (input.includes('mark as done')) {
+            const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
+            if (taskId && !isNaN(taskId)) {
+                markTaskAsDone(taskId - 1);
+                updateChatBox(`Task ${taskId} marked as done.`);
+                speak(`Task ${taskId} marked as done.`);
+            } else {
+                updateChatBox('Please specify a valid task ID to mark as done.');
+                speak('Please specify a valid task ID to mark as done.');
+            }
+        } else if (input.includes('show tasks')) {
+            displayTasks();
+            updateChatBox('Here are your tasks.');
+            speak('Here are your tasks.');
+        } else {
+            updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+            speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+        }
+    }, 1000); // Simulate 1-second processing delay
+}
+
+// Speak a message
+function speak(message) {
+    const speech = new SpeechSynthesisUtterance(message);
+    window.speechSynthesis.speak(speech);
+}
+
+// Show task templates
+function showTaskTemplates() {
+    const templates = [
+        "Add task: Buy groceries by 10/15/2023 (Category: Shopping, Subcategory: Groceries, Priority: High)",
+        "Add task: Finish project by Friday (Category: Work, Subcategory: Appointments, Priority: Medium)",
+        "Add task: Gym at 7 PM (Category: Exercise, Subcategory: Gym, Priority: Low)",
+    ];
+
+    const templateList = document.createElement('ul');
+    templates.forEach(template => {
+        const li = document.createElement('li');
+        li.textContent = template;
+        li.addEventListener('click', () => {
+            document.getElementById('taskInput').value = template;
+            handleUserInput(template); // Automatically process the template
+        });
+        templateList.appendChild(li);
+    });
+
+    document.getElementById('taskTemplates').appendChild(templateList);
+}
+
+// Initialize the app
+console.log("Initializing app");
+if (isLoggedIn()) {
+    showDashboard();
+} else {
+    showSignIn();
+}
