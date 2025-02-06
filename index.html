@@ -11,22 +11,16 @@
     <link rel="apple-touch-icon" href="https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png">
 </head>
 <body>
-    <div id="content">
-        <input id="taskInput" placeholder="Enter task">
-        <button id="addTaskBtn">Add Task</button>
-        <select id="categorySelect"></select>
-        <input id="reminderInput" type="date">
-        <div id="taskTemplates"></div>
-        <button id="darkModeToggle">Toggle Dark Mode</button>
-        <div id="progress"></div>
-        <button id="logoutBtn">Logout</button>
-        <div id="taskList"></div>
+    <div id="content"></div>
+    <div id="loading-spinner" class="loading-spinner" style="display: none;">
+         <div class="spinner"></div>
     </div>
     <button id="installButton" style="display: none;">Install App</button>  
     <!-- Footer -->
     <footer>
         <p>© 2024 Kimo Task Manager. Built with ❤️ by <a href="https://yourwebsite.com" target="_blank">KMGad</a>.</p>
     </footer>
+
     <script src="script.js"></script>
     <script>
         // Register the service worker
