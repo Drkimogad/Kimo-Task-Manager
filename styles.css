@@ -287,3 +287,30 @@ body.dark-mode .progress {
 .dark-mode #taskTemplates li:hover {
     background-color: #666;
 }
+
+/* Dark mode styles */
+body.dark-mode {
+    background-color: #333;
+    color: #fff;
+}
+
+body.dark-mode .header-container {
+    background-color: #444;
+    color: #fff;
+}
+
+body.dark-mode .task-item {
+    background-color: #555;
+    color: #fff;
+}
+
+body.dark-mode .chat-box {
+    background-color: #444;
+    color: #fff;
+}
+
+body.dark-mode input, body.dark-mode select, body.dark-mode button {
+    background-color: #555;
+    color: #fff;
+    border: 1px solid #777;
+}
