@@ -33,11 +33,7 @@ function renderHeader() {
         <div class="header-container">
             <h1>Kimo Task Manager</h1>
             <nav>
-                ${isLoggedIn() ? `
-                    <button id="logoutButton">Logout</button>
-                ` : `
-                    <span>A simple task management app with voice commands.</span>
-                `}
+                ${isLoggedIn() ? `<button id="logoutButton">Logout</button>` : `<span>A simple task management app with voice commands.</span>`}
             </nav>
         </div>
     `;
@@ -84,12 +80,13 @@ function renderAuthPage(authType) {
         <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
     `;
 
-    content.innerHTML += `
-        <div class="auth-container">
-            ${formHTML}
-            <p id="error-message" class="error-message"></p>
-        </div>
+    const authContainer = document.createElement('div');
+    authContainer.className = 'auth-container';
+    authContainer.innerHTML = `
+        ${formHTML}
+        <p id="error-message" class="error-message"></p>
     `;
+    content.appendChild(authContainer);
 
     document.getElementById('authForm').addEventListener('submit', authType === 'signIn' ? handleSignIn : handleSignUp);
 }
@@ -151,50 +148,55 @@ function showDashboard() {
     currentUser = getLoggedInUser();
     const content = document.getElementById('content');
     content.innerHTML = ''; // Clear existing content
-    content.appendChild(renderHeader()); // Add header
-    content.innerHTML += `
-        <div class="dashboard-container">
-            <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
-            <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
-            <div class="progress-bar">
-                <div id="progress" class="progress"></div>
-            </div>
-            <div class="task-filters">
-                <label for="filterCategory">Filter by Category:</label>
-                <select id="filterCategory">
-                    <option value="All">All</option>
-                    <option value="Work">Work</option>
-                    <option value="Shopping">Shopping</option>
-                    <option value="Exercise">Exercise</option>
-                    <option value="Personal">Personal</option>
-                </select>
-                <button id="applyFilter">Apply Filter</button>
-            </div>
-            <div class="chat-container">
-                <div id="chatBox" class="chat-box"></div>
-                <form id="taskInputForm">
-                    <label for="taskInput">Ask me to add, delete, or update a task:</label>
-                    <input type="text" id="taskInput" required>
-                    <button type="submit">Send</button>
-                    <button type="button" id="showTemplates">Show Task Templates</button>
-                    <div id="taskTemplates"></div>
-                </form>
-                <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
-            </div>
-            <div class="task-container">
-                <h2>Your Tasks</h2>
-                <ul id="taskList"></ul>
-            </div>
+
+    // Append header separately to preserve its event listeners
+    const header = renderHeader();
+    content.appendChild(header);
+
+    // Create dashboard container element
+    const dashboardContainer = document.createElement('div');
+    dashboardContainer.className = 'dashboard-container';
+    dashboardContainer.innerHTML = `
+        <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
+        <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
+        <div class="progress-bar">
+            <div id="progress" class="progress"></div>
+        </div>
+        <div class="task-filters">
+            <label for="filterCategory">Filter by Category:</label>
+            <select id="filterCategory">
+                <option value="All">All</option>
+                <option value="Work">Work</option>
+                <option value="Shopping">Shopping</option>
+                <option value="Exercise">Exercise</option>
+                <option value="Personal">Personal</option>
+            </select>
+            <button id="applyFilter">Apply Filter</button>
+        </div>
+        <div class="chat-container">
+            <div id="chatBox" class="chat-box"></div>
+            <form id="taskInputForm">
+                <label for="taskInput">Ask me to add, delete, or update a task:</label>
+                <input type="text" id="taskInput" required>
+                <button type="submit">Send</button>
+                <button type="button" id="showTemplates">Show Task Templates</button>
+                <div id="taskTemplates"></div>
+            </form>
+            <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
+        </div>
+        <div class="task-container">
+            <h2>Your Tasks</h2>
+            <ul id="taskList"></ul>
         </div>
     `;
+    content.appendChild(dashboardContainer);
 
-    // Apply task filter
+    // Attach event listeners for dashboard elements
     document.getElementById('applyFilter').addEventListener('click', function () {
         const filterCategory = document.getElementById('filterCategory').value;
         displayTasks(filterCategory);
     });
 
-    // Handle task input
     document.getElementById('taskInputForm').addEventListener('submit', function (event) {
         event.preventDefault();
         const taskInput = document.getElementById('taskInput').value.toLowerCase();
@@ -202,13 +204,9 @@ function showDashboard() {
         document.getElementById('taskInput').value = ''; // Clear input field
     });
 
-    // Show task templates
     document.getElementById('showTemplates').addEventListener('click', showTaskTemplates);
-
-    // Voice command button
     document.getElementById('startVoice').addEventListener('click', startVoiceRecognition);
 
-    // Dark mode toggle
     document.getElementById('toggleDarkMode').addEventListener('click', function () {
         isDarkMode = !isDarkMode;
         document.body.classList.toggle('dark-mode', isDarkMode);
@@ -482,7 +480,9 @@ function showTaskTemplates() {
         templateList.appendChild(li);
     });
 
-    document.getElementById('taskTemplates').appendChild(templateList);
+    const taskTemplatesDiv = document.getElementById('taskTemplates');
+    taskTemplatesDiv.innerHTML = ''; // Clear previous templates
+    taskTemplatesDiv.appendChild(templateList);
 }
 
 // Initialize the app
