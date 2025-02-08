@@ -156,7 +156,12 @@ function startVoiceRecognition() {
 
     recognition.onresult = (event) => {
         const taskText = event.results[0][0].transcript;
-        addTask(taskText);
+        const doc = nlp(taskText);
+        const tasks = doc.sentences().out('array'); // Extract sentences as tasks
+        tasks.forEach(task => {
+            addTask(task);
+            notifyUser(task);
+        });
     };
 }
 
@@ -166,8 +171,9 @@ function addTask(taskText) {
     const taskItem = document.createElement('li');
     taskItem.innerHTML = `
         ${taskText} 
-        <button onclick="editTask(this)">✏️</button>
-        <button onclick="deleteTask(this)">❌</button>
+        <button onclick="editTask(this)">✏️ Edit</button>
+        <button onclick="exportTask(this)">📄 Export</button>
+        <button onclick="deleteTask(this)">❌ Delete</button>
     `;
     taskList.appendChild(taskItem);
     saveTasks();
@@ -176,7 +182,7 @@ function addTask(taskText) {
 // Edit a task
 function editTask(button) {
     const taskItem = button.parentElement;
-    const newText = prompt('Edit your task:', taskItem.textContent.trim());
+    const newText = prompt('Edit your task:', taskItem.childNodes[0].textContent.trim());
     if (newText) {
         taskItem.childNodes[0].textContent = newText;
         saveTasks();
@@ -193,7 +199,7 @@ function deleteTask(button) {
 function saveTasks() {
     const tasks = [];
     document.querySelectorAll('#taskList li').forEach(task => {
-        tasks.push(task.textContent.trim());
+        tasks.push(task.childNodes[0].textContent.trim());
     });
     localStorage.setItem('tasks', JSON.stringify(tasks));
 }
@@ -212,6 +218,31 @@ function exportTasks() {
     link.href = URL.createObjectURL(blob);
     link.download = 'tasks.txt';
     link.click();
+}
+
+// Export individual task as a text file
+function exportTask(button) {
+    const taskText = button.parentElement.childNodes[0].textContent.trim();
+    const blob = new Blob([taskText], { type: 'text/plain' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = 'task.txt';
+    link.click();
+}
+
+// Notify user for new task
+function notifyUser(taskText) {
+    if (Notification.permission === 'granted') {
+        new Notification('New Task Added', {
+            body: taskText,
+            icon: 'icon.png'
+        });
+    }
+}
+
+// Request notification permission
+if (Notification.permission !== 'granted') {
+    Notification.requestPermission();
 }
 
 // Initialize
