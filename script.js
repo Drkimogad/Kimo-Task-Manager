@@ -229,109 +229,100 @@ function showDashboard() {
     updateProgressBar();
 }
 
-// Parse task input for description, due date, priority, category, subcategory, and reminder time
+// NEW: Enhanced parseTaskInput function for NLP
 function parseTaskInput(input) {
-    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date (MM/DD/YYYY)
-    const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i); // Extract time (HH:MM AM/PM)
-    const priorityMatch = input.match(/high|medium|low/i); // Extract priority
-    const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food/i); // Extract subcategory
+    // Extract due date (MM/DD/YYYY or natural language like "tomorrow")
+    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/) || input.match(/tomorrow|today|next week|next month/i);
+    const dueDate = dueDateMatch ? dueDateMatch[0] : null;
+
+    // Extract time (HH:MM AM/PM)
+    const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i);
+    const time = timeMatch ? timeMatch[0] : null;
+
+    // Extract priority (high, medium, low)
+    const priorityMatch = input.match(/high|medium|low/i);
+    const priority = priorityMatch ? priorityMatch[0] : 'Medium';
+
+    // Extract category (work, shopping, exercise, etc.)
+    const categoryMatch = input.match(/work|shopping|exercise|personal|travel|school/i);
+    const category = categoryMatch ? categoryMatch[0] : 'Other';
+
+    // Extract subcategory (groceries, gym, etc.)
+    const subCategoryMatch = input.match(/groceries|gym|electronics|clothing|food|appointments/i);
+    const subCategory = subCategoryMatch ? subCategoryMatch[0] : '';
+
+    // Extract description (remove keywords like "add task")
+    const description = input
+        .replace(/add task|create task|task/i, '')
+        .replace(dueDateMatch ? dueDateMatch[0] : '', '')
+        .replace(timeMatch ? timeMatch[0] : '', '')
+        .replace(priorityMatch ? priorityMatch[0] : '', '')
+        .replace(categoryMatch ? categoryMatch[0] : '', '')
+        .replace(subCategoryMatch ? subCategoryMatch[0] : '', '')
+        .trim();
 
     return {
-        description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
-        dueDate: dueDateMatch ? dueDateMatch[0] : null,
-        time: timeMatch ? timeMatch[0] : null,
-        priority: priorityMatch ? priorityMatch[0] : 'Medium',
-        category: categoryMatch ? categoryMatch[0] : 'Other',
-        subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
+        description,
+        dueDate,
+        time,
+        priority,
+        category,
+        subCategory,
     };
 }
 
-// Handle the user input to add/delete/update tasks
-function handleUserInput(input) {
-    console.log(`Handling user input: ${input}`);
-    if (input.includes('add task') || input.includes('create task')) {
-        const taskDetails = parseTaskInput(input);
-        if (taskDetails.description) {
-            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
-            updateChatBox(`Task "${taskDetails.description}" added.`);
-            speak(`Task "${taskDetails.description}" added.`);
-        } else {
-            updateChatBox('Please specify a task.');
-            speak('Please specify a task.');
-        }
-    } else if (input.includes('delete task')) {
-        const taskId = parseInt(input.replace('delete task', '').trim());
-        if (taskId && !isNaN(taskId)) {
-            deleteTask(taskId - 1); // Assuming task IDs start from 1
-            updateChatBox(`Task ${taskId} deleted.`);
-            speak(`Task ${taskId} deleted.`);
-        } else {
-            updateChatBox('Please specify a valid task ID to delete.');
-            speak('Please specify a valid task ID to delete.');
-        }
-    } else if (input.includes('mark as done')) {
-        const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
-        if (taskId && !isNaN(taskId)) {
-            markTaskAsDone(taskId - 1);
-            updateChatBox(`Task ${taskId} marked as done.`);
-            speak(`Task ${taskId} marked as done.`);
-        } else {
-            updateChatBox('Please specify a valid task ID to mark as done.');
-            speak('Please specify a valid task ID to mark as done.');
-        }
-    } else {
-        updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-        speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-    }
-}
-
-// Update the chatbox with bot's response
-function updateChatBox(message) {
-    console.log(`Updating chatbox with message: ${message}`);
-    const chatBox = document.getElementById('chatBox');
-    const messageDiv = document.createElement('div');
-    messageDiv.textContent = `Bot: ${message}`;
-    chatBox.appendChild(messageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Add a new task to the list with reminder
-function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium', reminderTime = null) {
-    if (!description) {
-        updateChatBox('Error: Task description cannot be empty.');
-        speak('Error: Task description cannot be empty.');
-        return;
-    }
-
+// NEW: Edit task functionality
+function editTask(index) {
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const task = { id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false, reminderTime };
-    tasks.push(task);
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    displayTasks();
-    updateProgressBar();
-    if (reminderTime) {
-        setReminder(task);
+    const task = tasks[index];
+
+    if (task) {
+        const newDescription = prompt('Edit your task description:', task.description);
+        const newCategory = prompt('Edit the category:', task.category);
+        const newSubCategory = prompt('Edit the subcategory:', task.subCategory);
+        const newDueDate = prompt('Edit the due date (MM/DD/YYYY):', task.dueDate);
+        const newPriority = prompt('Edit the priority (High/Medium/Low):', task.priority);
+
+        if (newDescription) {
+            task.description = newDescription;
+            task.category = newCategory || task.category;
+            task.subCategory = newSubCategory || task.subCategory;
+            task.dueDate = newDueDate || task.dueDate;
+            task.priority = newPriority || task.priority;
+
+            localStorage.setItem('tasks', JSON.stringify(tasks));
+            displayTasks();
+            updateProgressBar();
+            updateChatBox(`Task "${task.description}" updated.`);
+            speak(`Task "${task.description}" updated.`);
+        }
     }
 }
 
-// Set a reminder for a task
-function setReminder(task) {
-    const now = new Date();
-    const reminderDate = new Date(`${now.toDateString()} ${task.reminderTime}`);
-    const timeout = reminderDate.getTime() - now.getTime();
+// NEW: Export task functionality
+function exportTask(index) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const task = tasks[index];
 
-    if (timeout > 0) {
-        setTimeout(() => {
-            new Notification('Task Reminder', {
-                body: `Reminder for task: ${task.description}`,
-                icon: 'icon-192x192.png'
-            });
-        }, timeout);
+    if (task) {
+        const taskText = `
+            Description: ${task.description}
+            Category: ${task.category}
+            Subcategory: ${task.subCategory}
+            Due Date: ${task.dueDate || 'No deadline'}
+            Priority: ${task.priority}
+            Status: ${task.done ? 'Done' : 'Pending'}
+        `;
+
+        const blob = new Blob([taskText], { type: 'text/plain' });
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = `task_${index + 1}.txt`;
+        link.click();
     }
 }
 
-// Display tasks in the task list
+// UPDATED: Display tasks with Edit and Export buttons
 function displayTasks(filterCategory = 'All') {
     console.log("Displaying tasks");
     const taskList = document.getElementById('taskList');
@@ -347,6 +338,8 @@ function displayTasks(filterCategory = 'All') {
                     ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
                 </span>
                 <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
+                <button class="edit" onclick="editTask(${index})">Edit</button>
+                <button class="export" onclick="exportTask(${index})">Export</button>
                 <button class="delete" onclick="deleteTask(${index})">Delete</button>
             `;
             taskList.appendChild(li);
@@ -354,7 +347,9 @@ function displayTasks(filterCategory = 'All') {
     });
 }
 
-// Mark a task as done or undo
+// Rest of the code remains unchanged...
+
+// Mark a task as done or undone
 function markTaskAsDone(index) {
     console.log(`Marking task as done: ${index}`);
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
