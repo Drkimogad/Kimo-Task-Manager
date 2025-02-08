@@ -347,8 +347,6 @@ function displayTasks(filterCategory = 'All') {
     });
 }
 
-// Rest of the code remains unchanged...
-
 // Mark a task as done or undone
 function markTaskAsDone(index) {
     console.log(`Marking task as done: ${index}`);
@@ -372,7 +370,7 @@ function deleteTask(index) {
     }
 }
 
-// Update progress bar
+// UPDATED: Update progress bar based on completed tasks
 function updateProgressBar() {
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     const completedTasks = tasks.filter(task => task.done).length;
