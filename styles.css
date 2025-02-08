@@ -7,7 +7,7 @@ body {
 }
 
 header {
-    background-color: #4CAF50;
+    background-color: #36454F; /* Charcoal color */
     color: white;
     padding: 1rem;
     text-align: center;
@@ -29,7 +29,7 @@ nav span {
 }
 
 button {
-    background-color: #4CAF50;
+    background-color: #FFA500; /* Light orange/mustard color */
     color: white;
     border: none;
     padding: 0.5rem 1rem;
@@ -39,7 +39,7 @@ button {
 }
 
 button:hover {
-    background-color: #45a049;
+    background-color: #FFB347; /* Slightly lighter orange */
 }
 
 /* Voice Command Input */
@@ -57,11 +57,11 @@ button:hover {
 
 .voice-command button {
     margin-left: 10px;
-    background-color: #ff9800;
+    background-color: #FFA500;
 }
 
 .voice-command button:hover {
-    background-color: #e68900;
+    background-color: #FFB347;
 }
 
 /* Task List */
@@ -100,19 +100,19 @@ button:hover {
 }
 
 .edit-btn {
-    background-color: #ffc107;
+    background-color: #FFC107;
 }
 
 .edit-btn:hover {
-    background-color: #e0a800;
+    background-color: #E0A800;
 }
 
 .delete-btn {
-    background-color: #f44336;
+    background-color: #F44336;
 }
 
 .delete-btn:hover {
-    background-color: #d32f2f;
+    background-color: #D32F2F;
 }
 
 .export-btn {
@@ -125,13 +125,13 @@ button:hover {
 
 /* Dark Mode */
 body.dark-mode {
-    background-color: #2c2c2c;
+    background-color: #2C2C2C;
     color: white;
 }
 
 body.dark-mode .task-container,
 body.dark-mode .voice-command {
-    background-color: #4a4a4a;
+    background-color: #4A4A4A;
     color: white;
 }
 
@@ -140,15 +140,39 @@ body.dark-mode .task-item {
 }
 
 body.dark-mode .edit-btn {
-    background-color: #ffcc00;
+    background-color: #FFCC00;
 }
 
 body.dark-mode .delete-btn {
-    background-color: #ff4444;
+    background-color: #FF4444;
 }
 
 body.dark-mode .export-btn {
-    background-color: #00aaff;
+    background-color: #00AAFF;
+}
+
+/* Text Containers on Focus */
+input:focus, textarea:focus {
+    border: 1px solid black; /* Black border on focus */
+}
+
+/* Sign-Up and Sign-In Forms */
+.auth-container form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 80%;
+    margin: 0 auto;
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 1rem;
+    background-color: #D8BFD8; /* Light purple color */
+    position: fixed;
+    width: 100%;
+    bottom: 0;
 }
 
 /* Responsive Design */
