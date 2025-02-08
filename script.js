@@ -223,7 +223,7 @@ function parseTaskInput(input) {
     const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i); // Extract time (HH:MM AM/PM)
     const priorityMatch = input.match(/high|medium|low/i); // Extract priority
     const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food/i); // Extract subcategory
+    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food[...]
 
     return {
         description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
@@ -354,20 +354,6 @@ function markTaskAsDone(index) {
     }
 }
 
-// Add task dynamically
-function addTask(taskText) {
-    const taskList = document.getElementById('taskList');
-    const taskItem = document.createElement('li');
-    taskItem.innerHTML = `
-        ${taskText} 
-        <button onclick="editTask(this)">✏️ Edit</button>
-        <button onclick="exportTask(this)">📄 Export</button>
-        <button onclick="deleteTask(this)">❌ Delete</button>
-    `;
-    taskList.appendChild(taskItem);
-    saveTasks();
-}
-
 // Edit a task
 function editTask(button) {
     const taskItem = button.parentElement;
@@ -433,7 +419,6 @@ function notifyUser(taskText) {
 if (Notification.permission !== 'granted') {
     Notification.requestPermission();
 }
-
 
 // Update progress bar
 function updateProgressBar() {
