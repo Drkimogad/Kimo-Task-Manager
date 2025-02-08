@@ -67,7 +67,7 @@ function renderAuthPage(authType) {
             <input type="password" id="password" required>
             <button type="submit">Sign In</button>
         </form>
-        <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
+        <p>Don't have an account? <a href="#" id="signUpLink">Sign Up</a></p>
     ` : `
         <h1>Kimo Task Manager</h1>
         <form id="authForm">
@@ -77,7 +77,7 @@ function renderAuthPage(authType) {
             <input type="password" id="newPassword" required>
             <button type="submit">Sign Up</button>
         </form>
-        <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
+        <p>Already have an account? <a href="#" id="signInLink">Sign In</a></p>
     `;
 
     const authContainer = document.createElement('div');
@@ -88,6 +88,17 @@ function renderAuthPage(authType) {
     `;
     content.appendChild(authContainer);
 
+    // Attach event listeners for sign-up and sign-in links
+    const signUpLink = document.getElementById('signUpLink');
+    const signInLink = document.getElementById('signInLink');
+    if (signUpLink) {
+        signUpLink.addEventListener('click', showSignUp);
+    }
+    if (signInLink) {
+        signInLink.addEventListener('click', showSignIn);
+    }
+
+    // Attach form submit event listener
     document.getElementById('authForm').addEventListener('submit', authType === 'signIn' ? handleSignIn : handleSignUp);
 }
 
@@ -99,6 +110,7 @@ function showSignIn() {
 
 // Render Sign-Up Page
 function showSignUp() {
+    console.log("Redirecting to sign-up page"); // Debugging line
     renderAuthPage('signUp');
 }
 
@@ -217,334 +229,11 @@ function showDashboard() {
     updateProgressBar();
 }
 
-// Parse task input for description, due date, priority, category, subcategory, and reminder time
-function parseTaskInput(input) {
-    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/); // Extract date (MM/DD/YYYY)
-    const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i); // Extract time (HH:MM AM/PM)
-    const priorityMatch = input.match(/high|medium|low/i); // Extract priority
-    const categoryMatch = input.match(/work|medical|healthcare|exercise|personal|shopping|travel|school|veterinary/i); // Extract category
-    const subCategoryMatch = input.match(/groceries|electronics|clothing|food|appliances|drinks|beauty care|appointments|toiletries|upcoming holiday|school trips|gym|park|running|walking|diet|dog food[...]
-
-    return {
-        description: input.replace(/add task|create task|task/i, '').trim(), // Remove command keywords
-        dueDate: dueDateMatch ? dueDateMatch[0] : null,
-        time: timeMatch ? timeMatch[0] : null,
-        priority: priorityMatch ? priorityMatch[0] : 'Medium',
-        category: categoryMatch ? categoryMatch[0] : 'Other',
-        subCategory: subCategoryMatch ? subCategoryMatch[0] : '',
-    };
-}
-
-// Handle the user input to add/delete/update tasks
-function handleUserInput(input) {
-    console.log(`Handling user input: ${input}`);
-    if (input.includes('add task') || input.includes('create task')) {
-        const taskDetails = parseTaskInput(input);
-        if (taskDetails.description) {
-            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
-            updateChatBox(`Task "${taskDetails.description}" added.`);
-            speak(`Task "${taskDetails.description}" added.`);
-        } else {
-            updateChatBox('Please specify a task.');
-            speak('Please specify a task.');
-        }
-    } else if (input.includes('delete task')) {
-        const taskId = parseInt(input.replace('delete task', '').trim());
-        if (taskId && !isNaN(taskId)) {
-            deleteTask(taskId - 1); // Assuming task IDs start from 1
-            updateChatBox(`Task ${taskId} deleted.`);
-            speak(`Task ${taskId} deleted.`);
-        } else {
-            updateChatBox('Please specify a valid task ID to delete.');
-            speak('Please specify a valid task ID to delete.');
-        }
-    } else if (input.includes('mark as done')) {
-        const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
-        if (taskId && !isNaN(taskId)) {
-            markTaskAsDone(taskId - 1);
-            updateChatBox(`Task ${taskId} marked as done.`);
-            speak(`Task ${taskId} marked as done.`);
-        } else {
-            updateChatBox('Please specify a valid task ID to mark as done.');
-            speak('Please specify a valid task ID to mark as done.');
-        }
-    } else {
-        updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-        speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-    }
-}
-
-// Update the chatbox with bot's response
-function updateChatBox(message) {
-    console.log(`Updating chatbox with message: ${message}`);
-    const chatBox = document.getElementById('chatBox');
-    const messageDiv = document.createElement('div');
-    messageDiv.textContent = `Bot: ${message}`;
-    chatBox.appendChild(messageDiv);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-// Add a new task to the list with reminder
-function addTask(description, category = 'Other', subCategory = '', dueDate = null, priority = 'Medium', reminderTime = null) {
-    if (!description) {
-        updateChatBox('Error: Task description cannot be empty.');
-        speak('Error: Task description cannot be empty.');
-        return;
-    }
-
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const task = { id: tasks.length + 1, description, category, subCategory, dueDate, priority, done: false, reminderTime };
-    tasks.push(task);
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-    displayTasks();
-    updateProgressBar();
-    if (reminderTime) {
-        setReminder(task);
-    }
-}
-
-// Set a reminder for a task
-function setReminder(task) {
-    const now = new Date();
-    const reminderDate = new Date(`${now.toDateString()} ${task.reminderTime}`);
-    const timeout = reminderDate.getTime() - now.getTime();
-
-    if (timeout > 0) {
-        setTimeout(() => {
-            new Notification('Task Reminder', {
-                body: `Reminder for task: ${task.description}`,
-                icon: 'icon-192x192.png'
-            });
-        }, timeout);
-    }
-}
-
-// Display tasks in the task list
-function displayTasks(filterCategory = 'All') {
-    console.log("Displaying tasks");
-    const taskList = document.getElementById('taskList');
-    taskList.innerHTML = '';
-
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    tasks.forEach((task, index) => {
-        if (filterCategory === 'All' || task.category === filterCategory) {
-            const li = document.createElement('li');
-            li.classList.add('task-item');
-            li.innerHTML = `
-                <span class="task-description ${task.done ? 'done' : ''}">
-                    ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
-                </span>
-                <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
-                <button class="delete" onclick="deleteTask(${index})">Delete</button>
-            `;
-            taskList.appendChild(li);
-        }
-    });
-}
-
-// Mark a task as done or undo
-function markTaskAsDone(index) {
-    console.log(`Marking task as done: ${index}`);
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    if (tasks[index]) {
-        tasks[index].done = !tasks[index].done; // Toggle done state
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        displayTasks();
-        updateProgressBar();
-    }
-}
-
-// Edit a task
-function editTask(button) {
-    const taskItem = button.parentElement;
-    const newText = prompt('Edit your task:', taskItem.childNodes[0].textContent.trim());
-    if (newText) {
-        taskItem.childNodes[0].textContent = newText;
-        saveTasks();
-    }
-}
-
-// Delete a task
-function deleteTask(button) {
-    button.parentElement.remove();
-    saveTasks();
-}
-
-// Save tasks to localStorage
-function saveTasks() {
-    const tasks = [];
-    document.querySelectorAll('#taskList li').forEach(task => {
-        tasks.push(task.childNodes[0].textContent.trim());
-    });
-    localStorage.setItem('tasks', JSON.stringify(tasks));
-}
-
-// Load tasks from localStorage
-function loadTasks() {
-    const savedTasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    savedTasks.forEach(taskText => addTask(taskText));
-}
-
-// Export tasks as a text file
-function exportTasks() {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const blob = new Blob([tasks.join('\n')], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'tasks.txt';
-    link.click();
-}
-
-// Export individual task as a text file
-function exportTask(button) {
-    const taskText = button.parentElement.childNodes[0].textContent.trim();
-    const blob = new Blob([taskText], { type: 'text/plain' });
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'task.txt';
-    link.click();
-}
-
-// Notify user for new task
-function notifyUser(taskText) {
-    if (Notification.permission === 'granted') {
-        new Notification('New Task Added', {
-            body: taskText,
-            icon: 'icon.png'
-        });
-    }
-}
-
-// Request notification permission
-if (Notification.permission !== 'granted') {
-    Notification.requestPermission();
-}
-
-// Update progress bar
-function updateProgressBar() {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const completedTasks = tasks.filter(task => task.done).length;
-    const progress = (completedTasks / tasks.length) * 100 || 0;
-    document.getElementById('progress').style.width = `${progress}%`;
-}
-
-// Start Speech Recognition
-function startVoiceRecognition() {
-    if (!('webkitSpeechRecognition' in window)) {
-        alert('Your browser does not support speech recognition.');
-        return;
-    }
-
-    const recognition = new webkitSpeechRecognition();
-    recognition.lang = 'en-US';
-    recognition.continuous = false;
-    recognition.interimResults = false;
-
-    recognition.onstart = function () {
-        console.log('Voice recognition started. Try speaking into the microphone.');
-        speak("Hello, how may I help?");
-    };
-
-    recognition.onresult = function (event) {
-        if (event.results.length > 0) {
-            const voiceInput = event.results[0][0].transcript.toLowerCase();
-            console.log(`Voice Input: ${voiceInput}`);
-            handleVoiceCommand(voiceInput);
-        }
-    };
-
-    recognition.onerror = function (event) {
-        console.error('Speech recognition error', event);
-    };
-
-    recognition.onend = function () {
-        console.log('Voice recognition ended.');
-    };
-
-    recognition.start();
-}
-
-// Handle voice commands for tasks
-function handleVoiceCommand(input) {
-    updateChatBox(`Processing: "${input}"`);
-    speak(`Processing: "${input}"`);
-
-    setTimeout(() => {
-        if (input.includes('add task') || input.includes('create task')) {
-            const taskDetails = parseTaskInput(input);
-            if (taskDetails.description) {
-                addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
-                updateChatBox(`Task "${taskDetails.description}" added.`);
-                speak(`Task "${taskDetails.description}" added.`);
-            } else {
-                updateChatBox('Please specify a task.');
-                speak('Please specify a task.');
-            }
-        } else if (input.includes('delete task')) {
-            const taskId = parseInt(input.replace('delete task', '').trim());
-            if (taskId && !isNaN(taskId)) {
-                deleteTask(taskId - 1);
-                updateChatBox(`Task ${taskId} deleted.`);
-                speak(`Task ${taskId} deleted.`);
-            } else {
-                updateChatBox('Please specify a valid task ID to delete.');
-                speak('Please specify a valid task ID to delete.');
-            }
-        } else if (input.includes('mark as done')) {
-            const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
-            if (taskId && !isNaN(taskId)) {
-                markTaskAsDone(taskId - 1);
-                updateChatBox(`Task ${taskId} marked as done.`);
-                speak(`Task ${taskId} marked as done.`);
-            } else {
-                updateChatBox('Please specify a valid task ID to mark as done.');
-                speak('Please specify a valid task ID to mark as done.');
-            }
-        } else if (input.includes('show tasks')) {
-            displayTasks();
-            updateChatBox('Here are your tasks.');
-            speak('Here are your tasks.');
-        } else {
-            updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-            speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-        }
-    }, 1000); // Simulate 1-second processing delay
-}
-
-// Speak a message
-function speak(message) {
-    const speech = new SpeechSynthesisUtterance(message);
-    window.speechSynthesis.speak(speech);
-}
-
-// Show task templates
-function showTaskTemplates() {
-    const templates = [
-        "Add task: Buy groceries by 10/15/2023 (Category: Shopping, Subcategory: Groceries, Priority: High)",
-        "Add task: Finish project by Friday (Category: Work, Subcategory: Appointments, Priority: Medium)",
-        "Add task: Gym at 7 PM (Category: Exercise, Subcategory: Gym, Priority: Low)",
-    ];
-
-    const templateList = document.createElement('ul');
-    templates.forEach(template => {
-        const li = document.createElement('li');
-        li.textContent = template;
-        li.addEventListener('click', () => {
-            document.getElementById('taskInput').value = template;
-            handleUserInput(template); // Automatically process the template
-        });
-        templateList.appendChild(li);
-    });
-
-    const taskTemplatesDiv = document.getElementById('taskTemplates');
-    taskTemplatesDiv.innerHTML = ''; // Clear previous templates
-    taskTemplatesDiv.appendChild(templateList);
-}
-
 // Initialize the app
-console.log("Initializing app");
-if (isLoggedIn()) {
-    showDashboard();
-} else {
-    showSignIn();
-}
+document.addEventListener('DOMContentLoaded', function () {
+    if (isLoggedIn()) {
+        showDashboard();
+    } else {
+        showSignIn();
+    }
+});
