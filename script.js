@@ -31,7 +31,7 @@ function renderHeader() {
     const header = document.createElement('header');
     header.innerHTML = `
         <div class="header-container">
-            <h1>Kimo Task Manager</h1>
+            <h1>Tasklyify</h1>
             <nav>
                 ${isLoggedIn() ? `<button id="logoutButton">Logout</button>` : `<span>A simple task management app with voice commands.</span>`}
             </nav>
@@ -59,7 +59,7 @@ function renderAuthPage(authType) {
     content.appendChild(renderHeader()); // Add header
 
     const formHTML = authType === 'signIn' ? `
-        <h1>Kimo Task Manager</h1>
+        <h1>Tasklyify</h1>
         <form id="authForm">
             <label for="email">Email:</label>
             <input type="email" id="email" required>
@@ -69,7 +69,7 @@ function renderAuthPage(authType) {
         </form>
         <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
     ` : `
-        <h1>Kimo Task Manager</h1>
+        <h1>Tasklyify</h1>
         <form id="authForm">
             <label for="newEmail">Email:</label>
             <input type="email" id="newEmail" required>
