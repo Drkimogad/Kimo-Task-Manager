@@ -229,49 +229,31 @@ function showDashboard() {
     updateProgressBar();
 }
 
-// NEW: Enhanced parseTaskInput function for NLP
-function parseTaskInput(input) {
-    // Extract due date (MM/DD/YYYY or natural language like "tomorrow")
-    const dueDateMatch = input.match(/\d{1,2}\/\d{1,2}\/\d{4}/) || input.match(/tomorrow|today|next week|next month/i);
-    const dueDate = dueDateMatch ? dueDateMatch[0] : null;
-
-    // Extract time (HH:MM AM/PM)
-    const timeMatch = input.match(/\d{1,2}:\d{2}\s?(AM|PM)?/i);
-    const time = timeMatch ? timeMatch[0] : null;
-
-    // Extract priority (high, medium, low)
-    const priorityMatch = input.match(/high|medium|low/i);
-    const priority = priorityMatch ? priorityMatch[0] : 'Medium';
-
-    // Extract category (work, shopping, exercise, etc.)
-    const categoryMatch = input.match(/work|shopping|exercise|personal|travel|school/i);
-    const category = categoryMatch ? categoryMatch[0] : 'Other';
-
-    // Extract subcategory (groceries, gym, etc.)
-    const subCategoryMatch = input.match(/groceries|gym|electronics|clothing|food|appointments/i);
-    const subCategory = subCategoryMatch ? subCategoryMatch[0] : '';
-
-    // Extract description (remove keywords like "add task")
-    const description = input
-        .replace(/add task|create task|task/i, '')
-        .replace(dueDateMatch ? dueDateMatch[0] : '', '')
-        .replace(timeMatch ? timeMatch[0] : '', '')
-        .replace(priorityMatch ? priorityMatch[0] : '', '')
-        .replace(categoryMatch ? categoryMatch[0] : '', '')
-        .replace(subCategoryMatch ? subCategoryMatch[0] : '', '')
-        .trim();
-
-    return {
-        description,
-        dueDate,
-        time,
-        priority,
-        category,
-        subCategory,
-    };
+// Enhanced handleUserInput function to update chatbox and local storage immediately
+function handleUserInput(input) {
+    const taskDetails = parseTaskInput(input);
+    if (taskDetails.description) {
+        addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
+        updateChatBox(`Task "${taskDetails.description}" added.`);
+        speak(`Task "${taskDetails.description}" added.`);
+        displayTasks(); // Ensure tasks are displayed immediately
+        updateProgressBar(); // Update progress bar dynamically
+    } else {
+        updateChatBox('Please specify a task.');
+        speak('Please specify a task.');
+    }
 }
 
-// NEW: Edit task functionality
+// Enhanced addTask function to update local storage and chatbox
+function addTask(description, category, subCategory, dueDate, priority, time) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    tasks.push({ description, category, subCategory, dueDate, priority, time, done: false });
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    displayTasks();
+    updateProgressBar();
+}
+
+// Enhanced editTask function to update tasks instead of just adding new ones
 function editTask(index) {
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     const task = tasks[index];
@@ -299,30 +281,7 @@ function editTask(index) {
     }
 }
 
-// NEW: Export task functionality
-function exportTask(index) {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    const task = tasks[index];
-
-    if (task) {
-        const taskText = `
-            Description: ${task.description}
-            Category: ${task.category}
-            Subcategory: ${task.subCategory}
-            Due Date: ${task.dueDate || 'No deadline'}
-            Priority: ${task.priority}
-            Status: ${task.done ? 'Done' : 'Pending'}
-        `;
-
-        const blob = new Blob([taskText], { type: 'text/plain' });
-        const link = document.createElement('a');
-        link.href = URL.createObjectURL(blob);
-        link.download = `task_${index + 1}.txt`;
-        link.click();
-    }
-}
-
-// UPDATED: Display tasks with Edit and Export buttons
+// Enhanced displayTasks function to include auto-scrolling
 function displayTasks(filterCategory = 'All') {
     console.log("Displaying tasks");
     const taskList = document.getElementById('taskList');
@@ -345,32 +304,13 @@ function displayTasks(filterCategory = 'All') {
             taskList.appendChild(li);
         }
     });
+
+    // Auto-scroll chatbox to the bottom
+    const chatBox = document.getElementById('chatBox');
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// Mark a task as done or undone
-function markTaskAsDone(index) {
-    console.log(`Marking task as done: ${index}`);
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    if (tasks[index]) {
-        tasks[index].done = !tasks[index].done; // Toggle done state
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        displayTasks();
-        updateProgressBar();
-    }
-}
-
-// Delete a task
-function deleteTask(index) {
-    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
-    if (tasks[index]) {
-        tasks.splice(index, 1); // Remove the task
-        localStorage.setItem('tasks', JSON.stringify(tasks));
-        displayTasks();
-        updateProgressBar();
-    }
-}
-
-// UPDATED: Update progress bar based on completed tasks
+// Enhanced updateProgressBar function to update progress bar dynamically
 function updateProgressBar() {
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     const completedTasks = tasks.filter(task => task.done).length;
@@ -489,6 +429,15 @@ function showTaskTemplates() {
     const taskTemplatesDiv = document.getElementById('taskTemplates');
     taskTemplatesDiv.innerHTML = ''; // Clear previous templates
     taskTemplatesDiv.appendChild(templateList);
+}
+
+// Enhanced updateChatBox function to auto-scroll and provide feedback
+function updateChatBox(message) {
+    const chatBox = document.getElementById('chatBox');
+    const chatMessage = document.createElement('div');
+    chatMessage.textContent = message;
+    chatBox.appendChild(chatMessage);
+    chatBox.scrollTop = chatBox.scrollHeight; // Auto-scroll to the bottom
 }
 
 // Initialize the app
