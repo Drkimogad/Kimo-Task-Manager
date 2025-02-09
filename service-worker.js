@@ -1,14 +1,14 @@
-const CACHE_NAME = 'Kimo-Task-Manager-cache-v1'; // Update cache version
+const CACHE_NAME = 'Tasklyify-cache-v1'; // Update cache version
 const urlsToCache = [
-    'https://drkimogad.github.io/Kimo-Task-Manager/',
-    'https://drkimogad.github.io/Kimo-Task-Manager/index.html',
-    'https://drkimogad.github.io/Kimo-Task-Manager/styles.css',
-    'https://drkimogad.github.io/Kimo-Task-Manager/script.js',
-    'https://drkimogad.github.io/Kimo-Task-Manager/manifest.json',
-    'https://drkimogad.github.io/Kimo-Task-Manager/service-worker.js',
-    'https://drkimogad.github.io/Kimo-Task-Manager/favicon.ico',
-    'https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png',
-    'https://drkimogad.github.io/Kimo-Task-Manager/offline.html' // Ensure offline page is cached
+    'https://drkimogad.github.io/Tasklyify/',
+    'https://drkimogad.github.io/Tasklyify/index.html',
+    'https://drkimogad.github.io/Tasklyify/styles.css',
+    'https://drkimogad.github.io/Tasklyify/script.js',
+    'https://drkimogad.github.io/Tasklyify/manifest.json',
+    'https://drkimogad.github.io/Tasklyify/service-worker.js',
+    'https://drkimogad.github.io/Tasklyify/favicon.ico',
+    'https://drkimogad.github.io/Tasklyify/icons/icon-192x192.png',
+    'https://drkimogad.github.io/Tasklyify/offline.html' // Ensure offline page is cached
 ];
 
 // Install event: Cache necessary assets
@@ -48,18 +48,18 @@ self.addEventListener('fetch', (event) => {
 
             // If the request is for an HTML file (navigation), return the offline page
             if (event.request.mode === 'navigate') {
-                return caches.match('https://drkimogad.github.io/Kimo-Task-Manager/index.html');  // Ensure offline.html is cached
+                return caches.match('https://drkimogad.github.io/Tasklyify/index.html');  // Ensure offline.html is cached
             }
 
             console.log('Fetching from network:', event.request.url);
             return fetch(event.request).catch(() => {
                 // Offline fallback if fetch fails (e.g., user is offline)
-                return caches.match('https://drkimogad.github.io/Kimo-Task-Manager/index.html');  // Ensure offline.html is cached
+                return caches.match('https://drkimogad.github.io/Tasklyify/index.html');  // Ensure offline.html is cached
             });
         }).catch((err) => {
             console.error('Error fetching:', err);
             // In case of any unexpected errors, fallback to offline.html
-            return caches.match('https://drkimogad.github.io/Kimo-Task-Manager/index.html');
+            return caches.match('https://drkimogad.github.io/Tasklyify/index.html');
         })
     );
 });
@@ -97,12 +97,12 @@ self.addEventListener('message', (event) => {
 self.addEventListener('push', (event) => {
     const options = {
         body: event.data ? event.data.text() : 'You have a new reminder!',
-        icon: 'https://drkimogad.github.io/Kimo-Task-Manager/icons/icon-192x192.png',
-        badge: 'https://drkimogad.github.io/Kimo-Task-Manager/icon-192x192.png',
+        icon: 'https://drkimogad.github.io/Tasklyify/icons/icon-192x192.png',
+        badge: 'https://drkimogad.github.io/Tasklyify/icon-192x192.png',
     };
 
     event.waitUntil(
-        self.registration.showNotification('Kimo-Task-Manager Reminder', options)
+        self.registration.showNotification('Tasklyify Reminder', options)
     );
 });
 
