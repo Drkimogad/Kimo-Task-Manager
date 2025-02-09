@@ -236,12 +236,12 @@ function handleUserInput(input) {
         addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
         updateChatBox(`Task "${taskDetails.description}" added.`);
         speak(`Task "${taskDetails.description}" added.`);
-        displayTasks(); // Ensure tasks are displayed immediately
-        updateProgressBar(); // Update progress bar dynamically
     } else {
         updateChatBox('Please specify a task.');
         speak('Please specify a task.');
     }
+    displayTasks(); // Ensure tasks are displayed immediately
+    updateProgressBar(); // Update progress bar dynamically
 }
 
 // Enhanced addTask function to update local storage and chatbox
@@ -249,8 +249,6 @@ function addTask(description, category, subCategory, dueDate, priority, time) {
     const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
     tasks.push({ description, category, subCategory, dueDate, priority, time, done: false });
     localStorage.setItem('tasks', JSON.stringify(tasks));
-    displayTasks();
-    updateProgressBar();
 }
 
 // Enhanced editTask function to update tasks instead of just adding new ones
@@ -399,6 +397,8 @@ function handleVoiceCommand(input) {
             speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
         }
     }, 1000); // Simulate 1-second processing delay
+    displayTasks(); // Ensure tasks are displayed immediately
+    updateProgressBar(); // Update progress bar dynamically
 }
 
 // Speak a message
