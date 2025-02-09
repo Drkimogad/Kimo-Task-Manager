@@ -171,6 +171,18 @@ function showDashboard() {
     dashboardContainer.innerHTML = `
         <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
         <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
+        <div class="chat-container">
+            <div id="chatBox" class="chat-box"></div>
+            <form id="taskInputForm">
+                <label for="taskInput">Ask me to add, delete, or update a task:</label>
+                <input type="text" id="taskInput" required>
+                <button type="submit">Send</button>
+                <button type="button" id="showTemplates">Show Task Templates</button>
+                <div id="taskTemplates"></div>
+            </form>
+            <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
+        </div>
+        <div class="task-container">
         <div class="progress-bar">
             <div id="progress" class="progress"></div>
         </div>
@@ -185,18 +197,6 @@ function showDashboard() {
             </select>
             <button id="applyFilter">Apply Filter</button>
         </div>
-        <div class="chat-container">
-            <div id="chatBox" class="chat-box"></div>
-            <form id="taskInputForm">
-                <label for="taskInput">Ask me to add, delete, or update a task:</label>
-                <input type="text" id="taskInput" required>
-                <button type="submit">Send</button>
-                <button type="button" id="showTemplates">Show Task Templates</button>
-                <div id="taskTemplates"></div>
-            </form>
-            <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
-        </div>
-        <div class="task-container">
             <h2>Your Tasks</h2>
             <ul id="taskList"></ul>
         </div>
