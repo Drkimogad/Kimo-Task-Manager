@@ -11,15 +11,22 @@
     <link rel="apple-touch-icon" href="https://drkimogad.github.io/Tasklyify/icons/icon-192x192.png">
 </head>
 <body>
+    <!-- Main content container -->
     <div id="content"></div>
-    <button id="installButton" style="display: none;">Install App</button>  
+
+    <!-- Install button (hidden by default) -->
+    <button id="installButton" style="display: none;">Install App</button>
+
     <!-- Footer -->
     <footer>
         <p>© 2024 Tasklyify. Built with ❤️ by <a href="https://pawsitivevet2024.wordpress.com" target="_blank">KMGad</a>.</p>
     </footer>
 
-    <script src="script.js"></script>
+    <!-- Scripts -->
     <script src="https://cdn.jsdelivr.net/npm/bcryptjs@2.4.3/dist/bcrypt.min.js"></script>
+    <script src="script.js"></script>
+
+    <!-- Service Worker Registration -->
     <script>
         // Register the service worker
         if ('serviceWorker' in navigator) {
@@ -33,6 +40,38 @@
                     });
             });
         }
+
+        // Handle the install button
+        let deferredPrompt;
+        const installButton = document.getElementById('installButton');
+
+        window.addEventListener('beforeinstallprompt', (event) => {
+            // Prevent the default prompt
+            event.preventDefault();
+            // Save the event for later use
+            deferredPrompt = event;
+            // Show the install button
+            installButton.style.display = 'block';
+        });
+
+        installButton.addEventListener('click', () => {
+            if (deferredPrompt) {
+                // Show the install prompt
+                deferredPrompt.prompt();
+                // Wait for the user to respond
+                deferredPrompt.userChoice.then((choiceResult) => {
+                    if (choiceResult.outcome === 'accepted') {
+                        console.log('User accepted the install prompt');
+                    } else {
+                        console.log('User dismissed the install prompt');
+                    }
+                    // Clear the deferredPrompt variable
+                    deferredPrompt = null;
+                    // Hide the install button
+                    installButton.style.display = 'none';
+                });
+            }
+        });
     </script>
 </body>
 </html>
