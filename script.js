@@ -1,6 +1,10 @@
 let currentUser = null; // For keeping track of logged-in user
 let isDarkMode = localStorage.getItem('isDarkMode') === 'true'; // Track dark mode state
 
+// Load bcrypt.js for secure password hashing
+const bcrypt = dcodeIO.bcrypt;
+const saltRounds = 10;
+
 // Helper functions for login state
 function isLoggedIn() {
     return localStorage.getItem('loggedIn') === 'true';
@@ -10,12 +14,9 @@ function getLoggedInUser() {
     return JSON.parse(localStorage.getItem('currentUser'));
 }
 
-// Secure hash password (using SHA-256 for demonstration purposes)
+// Secure hash password using bcrypt
 async function hashPassword(password) {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(password);
-    const hash = await crypto.subtle.digest('SHA-256', data);
-    return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+    return await bcrypt.hash(password, saltRounds);
 }
 
 // Logout function
@@ -33,7 +34,7 @@ function renderHeader() {
         <div class="header-container">
             <h1>Tasklyify</h1>
             <nav>
-                ${isLoggedIn() ? `<button id="logoutButton">Logout</button>` : `<span>A simple task management app with voice commands.</span>`}
+                ${isLoggedIn() ? `<button id="logoutButton" aria-label="Logout">Logout</button>` : `<span>A simple task management app with voice commands.</span>`}
             </nav>
         </div>
     `;
@@ -62,9 +63,9 @@ function renderAuthPage(authType) {
         <h1>Tasklyify</h1>
         <form id="authForm">
             <label for="email">Email:</label>
-            <input type="email" id="email" required>
+            <input type="email" id="email" required aria-required="true">
             <label for="password">Password:</label>
-            <input type="password" id="password" required>
+            <input type="password" id="password" required aria-required="true">
             <button type="submit">Sign In</button>
         </form>
         <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
@@ -72,9 +73,9 @@ function renderAuthPage(authType) {
         <h1>Tasklyify</h1>
         <form id="authForm">
             <label for="newEmail">Email:</label>
-            <input type="email" id="newEmail" required>
+            <input type="email" id="newEmail" required aria-required="true">
             <label for="newPassword">Password:</label>
-            <input type="password" id="newPassword" required>
+            <input type="password" id="newPassword" required aria-required="true">
             <button type="submit">Sign Up</button>
         </form>
         <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
@@ -84,7 +85,7 @@ function renderAuthPage(authType) {
     authContainer.className = 'auth-container';
     authContainer.innerHTML = `
         ${formHTML}
-        <p id="error-message" class="error-message"></p>
+        <p id="error-message" class="error-message" role="alert"></p>
     `;
     content.appendChild(authContainer);
 
@@ -108,15 +109,19 @@ async function handleSignIn(event) {
     const email = document.getElementById('email').value;
     const password = document.getElementById('password').value;
     const users = JSON.parse(localStorage.getItem('users')) || [];
-    const hashedPassword = await hashPassword(password);
-    const user = users.find(user => user.email === email && user.password === hashedPassword);
+    const user = users.find(user => user.email === email);
 
     if (user) {
-        localStorage.setItem('loggedIn', 'true');
-        localStorage.setItem('currentUser', JSON.stringify(user));
-        showDashboard();
+        const isPasswordValid = await bcrypt.compare(password, user.password);
+        if (isPasswordValid) {
+            localStorage.setItem('loggedIn', 'true');
+            localStorage.setItem('currentUser', JSON.stringify(user));
+            showDashboard();
+        } else {
+            document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
+        }
     } else {
-        document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
+        document.getElementById('error-message').textContent = 'User not found. Please sign up.';
     }
 }
 
@@ -158,7 +163,7 @@ function showDashboard() {
     dashboardContainer.className = 'dashboard-container';
     dashboardContainer.innerHTML = `
         <h2>Welcome to your dashboard, ${currentUser.email}!</h2>
-        <button id="toggleDarkMode" class="dark-mode-button">🌙 Toggle Dark Mode</button>
+        <button id="toggleDarkMode" class="dark-mode-button" aria-label="Toggle Dark Mode">🌙 Toggle Dark Mode</button>
         <div class="progress-bar">
             <div id="progress" class="progress"></div>
         </div>
@@ -177,12 +182,12 @@ function showDashboard() {
             <div id="chatBox" class="chat-box"></div>
             <form id="taskInputForm">
                 <label for="taskInput">Ask me to add, delete, or update a task:</label>
-                <input type="text" id="taskInput" required>
+                <input type="text" id="taskInput" required aria-required="true">
                 <button type="submit">Send</button>
                 <button type="button" id="showTemplates">Show Task Templates</button>
                 <div id="taskTemplates"></div>
             </form>
-            <button id="startVoice" class="voice-button">🎤 Start Voice Command</button>
+            <button id="startVoice" class="voice-button" aria-label="Start Voice Command">🎤 Start Voice Command</button>
         </div>
         <div class="task-container">
             <h2>Your Tasks</h2>
@@ -386,7 +391,7 @@ function startVoiceRecognition() {
 
     recognition.onstart = function () {
         console.log('Voice recognition started. Try speaking into the microphone.');
-        speak("Hello, how may I help?");
+        speak("Hello, my name's Kimo, your task assisstant. How may I help you today?");
     };
 
     recognition.onresult = function (event) {
