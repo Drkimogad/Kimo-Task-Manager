@@ -2,7 +2,11 @@ let currentUser = null; // For keeping track of logged-in user
 let isDarkMode = localStorage.getItem('isDarkMode') === 'true'; // Track dark mode state
 
 // Load bcrypt.js for secure password hashing
-const bcrypt = dcodeIO.bcrypt;
+if (typeof dcodeIO !== 'undefined' && dcodeIO.bcrypt) {
+    var bcrypt = dcodeIO.bcrypt;
+} else {
+    console.error('bcrypt library not loaded');
+}
 const saltRounds = 10;
 
 // Helper functions for login state
@@ -16,7 +20,11 @@ function getLoggedInUser() {
 
 // Secure hash password using bcrypt
 async function hashPassword(password) {
-    return await bcrypt.hash(password, saltRounds);
+    try {
+        return await bcrypt.hash(password, saltRounds);
+    } catch (error) {
+        console.error('Error hashing password:', error);
+    }
 }
 
 // Logout function
@@ -112,13 +120,17 @@ async function handleSignIn(event) {
     const user = users.find(user => user.email === email);
 
     if (user) {
-        const isPasswordValid = await bcrypt.compare(password, user.password);
-        if (isPasswordValid) {
-            localStorage.setItem('loggedIn', 'true');
-            localStorage.setItem('currentUser', JSON.stringify(user));
-            showDashboard();
-        } else {
-            document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
+        try {
+            const isPasswordValid = await bcrypt.compare(password, user.password);
+            if (isPasswordValid) {
+                localStorage.setItem('loggedIn', 'true');
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                showDashboard();
+            } else {
+                document.getElementById('error-message').textContent = 'Invalid credentials. Please try again.';
+            }
+        } catch (error) {
+            console.error('Error comparing password:', error);
         }
     } else {
         document.getElementById('error-message').textContent = 'User not found. Please sign up.';
@@ -135,11 +147,15 @@ async function handleSignUp(event) {
     if (users.some(user => user.email === newEmail)) {
         document.getElementById('error-message').textContent = 'Email already exists. Please use a different email.';
     } else {
-        const hashedPassword = await hashPassword(newPassword);
-        users.push({ email: newEmail, password: hashedPassword });
-        localStorage.setItem('users', JSON.stringify(users));
-        alert('Sign up successful! Please sign in.');
-        showSignIn();
+        try {
+            const hashedPassword = await hashPassword(newPassword);
+            users.push({ email: newEmail, password: hashedPassword });
+            localStorage.setItem('users', JSON.stringify(users));
+            alert('Sign up successful! Please sign in.');
+            showSignIn();
+        } catch (error) {
+            console.error('Error hashing password:', error);
+        }
     }
 }
 
@@ -226,22 +242,6 @@ function showDashboard() {
         </div>
         <div class="chat-container">
             <div id="chatBox" class="chat-box"></div>
-       <div class="chat-container">
-        <div id="chatBox" class="chat-box"></div>
-        <form id="taskInputForm">
-            <label for="taskInput">Ask me to add, delete, or update a task:</label>
-            <input type="text" id="taskInput" required aria-required="true">
-            <button type="submit">Send</button>
-            <button type="button" id="showTemplates">Show Task Templates</button>
-            <div id="taskTemplates"></div>
-        </form>
-        <button id="startVoice" class="voice-button" aria-label="Start Voice Command">🎤 Start Voice Command</button>
-    </div>
-`;
-
-// Attach event listener for voice recognition
-document.getElementById('startVoice').addEventListener('click', startVoiceRecognition);
-
             <form id="taskInputForm">
                 <label for="taskInput">Ask me to add, delete, or update a task:</label>
                 <input type="text" id="taskInput" required aria-required="true">
@@ -386,6 +386,7 @@ function updateChatBox(message) {
     chatBox.appendChild(messageDiv);
     chatBox.scrollTop = chatBox.scrollHeight;
 }
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Initializing app");
