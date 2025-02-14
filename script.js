@@ -226,6 +226,22 @@ function showDashboard() {
         </div>
         <div class="chat-container">
             <div id="chatBox" class="chat-box"></div>
+       <div class="chat-container">
+        <div id="chatBox" class="chat-box"></div>
+        <form id="taskInputForm">
+            <label for="taskInput">Ask me to add, delete, or update a task:</label>
+            <input type="text" id="taskInput" required aria-required="true">
+            <button type="submit">Send</button>
+            <button type="button" id="showTemplates">Show Task Templates</button>
+            <div id="taskTemplates"></div>
+        </form>
+        <button id="startVoice" class="voice-button" aria-label="Start Voice Command">🎤 Start Voice Command</button>
+    </div>
+`;
+
+// Attach event listener for voice recognition
+document.getElementById('startVoice').addEventListener('click', startVoiceRecognition);
+
             <form id="taskInputForm">
                 <label for="taskInput">Ask me to add, delete, or update a task:</label>
                 <input type="text" id="taskInput" required aria-required="true">
@@ -281,10 +297,101 @@ function showDashboard() {
     updateProgressBar();
 }
 
-// Initialize the app
-console.log("Initializing app");
-if (isLoggedIn()) {
-    showDashboard();
-} else {
-    showSignIn();
+// Voice Recognition Functionality
+function startVoiceRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+        alert('Your browser does not support speech recognition. Please use Google Chrome.');
+        return;
+    }
+
+    const recognition = new webkitSpeechRecognition();
+    recognition.lang = 'en-US';
+    recognition.continuous = false;
+    recognition.interimResults = false;
+
+    recognition.onstart = function () {
+        console.log('Voice recognition started. Speak now.');
+        speak("Listening...");
+    };
+
+    recognition.onresult = function (event) {
+        const voiceInput = event.results[0][0].transcript.toLowerCase();
+        console.log('Voice Input:', voiceInput);
+        handleUserInput(voiceInput);
+    };
+
+    recognition.onerror = function (event) {
+        console.error('Speech recognition error:', event.error);
+        speak("Sorry, I didn't catch that. Please try again.");
+    };
+
+    recognition.onend = function () {
+        console.log('Voice recognition ended.');
+    };
+
+    recognition.start();
 }
+
+// Speak a message
+function speak(message) {
+    const speech = new SpeechSynthesisUtterance(message);
+    window.speechSynthesis.speak(speech);
+}
+
+// Handle user input (voice or text)
+function handleUserInput(input) {
+    console.log(`Handling user input: ${input}`);
+    if (input.includes('add task') || input.includes('create task')) {
+        const taskDetails = parseTaskInput(input);
+        if (taskDetails.description) {
+            addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
+            updateChatBox(`Task "${taskDetails.description}" added.`);
+            speak(`Task "${taskDetails.description}" added.`);
+        } else {
+            updateChatBox('Please specify a task.');
+            speak('Please specify a task.');
+        }
+    } else if (input.includes('delete task')) {
+        const taskId = parseInt(input.replace('delete task', '').trim());
+        if (taskId && !isNaN(taskId)) {
+            deleteTask(taskId - 1); // Assuming task IDs start from 1
+            updateChatBox(`Task ${taskId} deleted.`);
+            speak(`Task ${taskId} deleted.`);
+        } else {
+            updateChatBox('Please specify a valid task ID to delete.');
+            speak('Please specify a valid task ID to delete.');
+        }
+    } else if (input.includes('mark as done')) {
+        const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
+        if (taskId && !isNaN(taskId)) {
+            markTaskAsDone(taskId - 1);
+            updateChatBox(`Task ${taskId} marked as done.`);
+            speak(`Task ${taskId} marked as done.`);
+        } else {
+            updateChatBox('Please specify a valid task ID to mark as done.');
+            speak('Please specify a valid task ID to mark as done.');
+        }
+    } else {
+        updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+        speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+    }
+}
+
+// Update the chatbox with bot's response
+function updateChatBox(message) {
+    console.log(`Updating chatbox with message: ${message}`);
+    const chatBox = document.getElementById('chatBox');
+    const messageDiv = document.createElement('div');
+    messageDiv.textContent = `Bot: ${message}`;
+    chatBox.appendChild(messageDiv);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+// Initialize the app
+document.addEventListener('DOMContentLoaded', function () {
+    console.log("Initializing app");
+    if (isLoggedIn()) {
+        showDashboard();
+    } else {
+        showSignIn();
+    }
+});
