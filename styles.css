@@ -121,6 +121,35 @@ button:hover {
     color: #36454F;
 }
 
+/* NEW: Task Summary Section */
+.task-summary {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.summary-card {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    flex: 1;
+}
+
+.summary-card h3 {
+    margin: 0;
+    color: #36454F;
+    font-size: 1rem;
+}
+
+.summary-card p {
+    margin: 0.5rem 0 0;
+    font-size: 1.5rem;
+    color: #FFA500;
+}
+
 /* Task List */
 .task-container {
     margin-top: 2rem;
@@ -183,6 +212,44 @@ button:hover {
     background-color: #1976D2;
 }
 
+/* NEW: Task Filters */
+.task-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.task-filters label {
+    color: #36454F;
+}
+
+.task-filters select,
+.task-filters input {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.task-filters button {
+    padding: 0.5rem 1rem;
+}
+
+/* NEW: Today's Tasks Section */
+.todays-tasks {
+    margin-top: 2rem;
+    background: white;
+    padding: 1rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.todays-tasks h2 {
+    color: #36454F;
+    margin-bottom: 1rem;
+}
+
 /* Chat Container */
 .chat-container {
     margin-top: 2rem;
@@ -218,6 +285,30 @@ button:hover {
     margin-top: 0.5rem;
 }
 
+/* NEW: Voice Command Guide */
+.voice-command-guide {
+    background-color: white;
+    padding: 1rem;
+    margin-top: 1rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.voice-command-guide h3 {
+    color: #36454F;
+    margin-bottom: 1rem;
+}
+
+.voice-command-guide ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.voice-command-guide li {
+    margin-bottom: 0.5rem;
+    color: #36454F;
+}
+
 /* Progress Bar */
 .progress-bar {
     width: 100%;
@@ -244,7 +335,10 @@ body.dark-mode header {
 
 body.dark-mode .auth-container,
 body.dark-mode .task-container,
-body.dark-mode #chatBox {
+body.dark-mode #chatBox,
+body.dark-mode .summary-card,
+body.dark-mode .todays-tasks,
+body.dark-mode .voice-command-guide {
     background-color: #4A4A4A;
     color: white;
 }
@@ -306,5 +400,13 @@ footer {
     .task-actions {
         width: 100%;
         justify-content: space-between;
+    }
+
+    .task-summary {
+        flex-direction: column;
+    }
+
+    .task-filters {
+        flex-direction: column;
     }
 }
