@@ -322,7 +322,7 @@ function showDashboard() {
     const header = renderHeader();
     content.appendChild(header);
 
-    // NEW: Add Task Summary Section
+    // Add Task Summary Section
     content.innerHTML += renderTaskSummary();
 
     // Create dashboard container element
@@ -419,6 +419,12 @@ function showDashboard() {
 
     document.getElementById('exportTasks').addEventListener('click', exportTasks);
 
+    // NEW: Attach logout button event listener
+    const logoutButton = document.getElementById('logoutButton');
+    if (logoutButton) {
+        logoutButton.addEventListener('click', logout);
+    }
+
     displayTasks();
     updateProgressBar();
 }
@@ -445,9 +451,11 @@ function displayTodaysTasks() {
 }
 
 // Initialize the app
-console.log("Initializing app");
-if (isLoggedIn()) {
-    showDashboard();
-} else {
-    showSignIn();
-}
+document.addEventListener('DOMContentLoaded', function () {
+    console.log("Initializing app");
+    if (isLoggedIn()) {
+        showDashboard();
+    } else {
+        showSignIn();
+    }
+});
