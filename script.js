@@ -424,6 +424,25 @@ function showDashboard() {
 }
 
 // NEW: Display Today's Tasks
+function displayTodaysTasks() {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const todaysTasks = getTodaysTasks(tasks);
+    const todaysTaskList = document.getElementById('todaysTaskList');
+    todaysTaskList.innerHTML = '';
+
+    todaysTasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.classList.add('task-item');
+        li.innerHTML = `
+            <span class="task-description ${task.done ? 'done' : ''}">
+                ${task.description} (${task.category}/${task.subCategory}) - Due: ${task.dueDate || 'No deadline'} - Priority: ${task.priority}
+            </span>
+            <button class="mark-done" onclick="markTaskAsDone(${index})">${task.done ? 'Undo' : 'Mark as Done'}</button>
+            <button class="delete" onclick="deleteTask(${index})">Delete</button>
+        `;
+        todaysTaskList.appendChild(li);
+    });
+}
 
 // Initialize the app
 console.log("Initializing app");
