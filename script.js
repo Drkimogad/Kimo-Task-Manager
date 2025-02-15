@@ -526,6 +526,21 @@ function displayTasks(filterCategory = 'All', tasksArray = null) {
         }
         taskList.appendChild(li);
     });
+    
+    // Check if task is overdue
+    if (task.dueDate) {
+        const dueDate = new Date(task.dueDate);
+        const today = new Date();
+        if (dueDate < today && !task.done) {
+            li.classList.add('overdue');
+        }
+    }
+    
+    li.textContent = `${index + 1}. [${task.category}] ${task.description} - ${task.done ? 'Done' : 'Pending'}`;
+    // ... (rest of your code for adding buttons)
+    taskList.appendChild(li);
+});
+
 }
 
 // Function to update the progress bar based on completed tasks
