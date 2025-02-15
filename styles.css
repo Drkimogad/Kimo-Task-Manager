@@ -345,14 +345,19 @@ body.dark-mode textarea {
     color: white;
     border: 1px solid #888;
 }
-
-/* Overdue task styling */
+/* Overdue Tasks Styling */
 .overdue {
-    background-color: #ffe6e6; /* Light red background */
-    border-left: 4px solid #ff4444; /* Red left border */
+    background-color: #ffe6e6;  /* Light red background for overdue tasks */
+    border-left: 4px solid #ff4444;  /* Red left border */
     padding-left: 0.5rem;
 }
 
+/* Typing Indicator Styling */
+#typingIndicator {
+    font-style: italic;
+    color: #888;
+    margin-top: 0.5rem;
+}
 /* Footer */
 footer {
     text-align: center;
