@@ -71,9 +71,9 @@ function renderAuthPage(authType) {
         <h1>Tasklyify</h1>
         <form id="authForm">
             <label for="email">Email:</label>
-            <input type="email" id="email" required aria-required="true">
+            <input type="email" id="email" required aria-required="true" autocomplete="email">
             <label for="password">Password:</label>
-            <input type="password" id="password" required aria-required="true">
+            <input type="password" id="password" required aria-required="true" autocomplete="current-password">
             <button type="submit">Sign In</button>
         </form>
         <p>Don't have an account? <a href="#" onclick="showSignUp()">Sign Up</a></p>
@@ -81,9 +81,9 @@ function renderAuthPage(authType) {
         <h1>Tasklyify</h1>
         <form id="authForm">
             <label for="newEmail">Email:</label>
-            <input type="email" id="newEmail" required aria-required="true">
+            <input type="email" id="newEmail" required aria-required="true" autocomplete="email">
             <label for="newPassword">Password:</label>
-            <input type="password" id="newPassword" required aria-required="true">
+            <input type="password" id="newPassword" required aria-required="true" autocomplete="new-password">
             <button type="submit">Sign Up</button>
         </form>
         <p>Already have an account? <a href="#" onclick="showSignIn()">Sign In</a></p>
@@ -209,7 +209,7 @@ function showDashboard() {
     const header = renderHeader();
     content.appendChild(header);
 
-    // Create dashboard container element
+    // Create dashboard container element with tweaked layout
     const dashboardContainer = document.createElement('div');
     dashboardContainer.className = 'dashboard-container';
     dashboardContainer.innerHTML = `
@@ -219,43 +219,47 @@ function showDashboard() {
         <div class="progress-bar">
             <div id="progress" class="progress"></div>
         </div>
-        <div class="task-filters">
-            <label for="filterCategory">Filter by Category:</label>
-            <select id="filterCategory">
-                <option value="All">All</option>
-                <option value="Work">Work</option>
-                <option value="Shopping">Shopping</option>
-                <option value="Exercise">Exercise</option>
-                <option value="Personal">Personal</option>
-            </select>
-            <button id="applyFilter">Apply Filter</button>
-        </div>
-        <div class="task-sorting">
-            <label for="sortTasks">Sort by:</label>
-            <select id="sortTasks">
-                <option value="dueDateAsc">Due Date (Ascending)</option>
-                <option value="dueDateDesc">Due Date (Descending)</option>
-                <option value="priority">Priority</option>
-                <option value="category">Category</option>
-            </select>
-            <button id="applySort">Apply Sort</button>
-        </div>
         <div class="chat-container">
             <div id="chatBox" class="chat-box"></div>
             <form id="taskInputForm">
                 <label for="taskInput">Ask me to add, delete, or update a task:</label>
-                <input type="text" id="taskInput" required aria-required="true">
+                <input type="text" id="taskInput" required aria-required="true" autocomplete="off">
                 <button type="submit">Send</button>
                 <button type="button" id="showTemplates">Show Task Templates</button>
                 <div id="taskTemplates"></div>
             </form>
-            <button id="startVoice" class="voice-button" aria-label="Start Voice Command">🎤 Start Voice Command</button>
+            <div class="voice-controls">
+                <button id="startVoice" class="voice-button" aria-label="Start Voice Command">🎤 Start Voice Command</button>
+                <button id="showVoiceCommands" class="voice-button" aria-label="Show Voice Commands">Show Voice Commands</button>
+            </div>
         </div>
         <div class="task-container">
             <h2>Your Tasks</h2>
+            <div class="task-controls">
+                <div class="task-filters">
+                    <label for="filterCategory">Filter by Category:</label>
+                    <select id="filterCategory">
+                        <option value="All">All</option>
+                        <option value="Work">Work</option>
+                        <option value="Shopping">Shopping</option>
+                        <option value="Exercise">Exercise</option>
+                        <option value="Personal">Personal</option>
+                    </select>
+                    <button id="applyFilter">Apply Filter</button>
+                </div>
+                <div class="task-sorting">
+                    <label for="sortTasks">Sort by:</label>
+                    <select id="sortTasks">
+                        <option value="dueDateAsc">Due Date (Ascending)</option>
+                        <option value="dueDateDesc">Due Date (Descending)</option>
+                        <option value="priority">Priority</option>
+                        <option value="category">Category</option>
+                    </select>
+                    <button id="applySort">Apply Sort</button>
+                </div>
+            </div>
             <ul id="taskList"></ul>
         </div>
-        <button id="showVoiceCommands">Show Voice Commands</button>
         <button id="exportTasks">Export Tasks</button>
     `;
     content.appendChild(dashboardContainer);
