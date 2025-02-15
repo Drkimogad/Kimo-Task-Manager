@@ -408,23 +408,23 @@ footer {
 /* --- Desktop Responsive Design (min-width: 1024px) --- */
 @media (min-width: 1024px) {
     body {
-        font-size: 0.875px;  /* Reduced by another 50% from 1.75px */
+        font-size: 12px;  /* Adjust base font size for desktop */
     }
     .dashboard-container {
-        max-width: 58.5px; /* Reduced by another 50% from 117px */
-        padding: 0.14rem 0.21rem; /* Reduced by another 50% from 0.275rem 0.415rem */
+        max-width: 500px;
+        padding: 1rem 1.5rem;
     }
     .auth-container {
-        max-width: 31px; /* Reduced by another 50% from 62px */
+        max-width: 300px;  /* Reduced to ensure the auth form fits nicely */
+        margin: 2rem auto;
     }
     header {
-        padding: 0.125rem; /* Reduced by another 50% from 0.25rem */
+        padding: 0.5rem;  /* Reduced header padding */
     }
     footer {
-        padding: 0.125rem; /* Reduced by another 50% from 0.25rem */
+        padding: 0.5rem;  /* Reduced footer padding */
     }
 }
-
 
 
 
