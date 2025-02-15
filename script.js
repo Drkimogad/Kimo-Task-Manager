@@ -387,6 +387,202 @@ function updateChatBox(message) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
+// ---------- Added Missing Functions ----------
+
+// Function to show task templates
+function showTaskTemplates() {
+    const templatesDiv = document.getElementById('taskTemplates');
+    const templates = [
+        { description: "Buy groceries", category: "Shopping" },
+        { description: "Finish report", category: "Work" },
+        { description: "Go for a run", category: "Exercise" },
+        { description: "Call mom", category: "Personal" }
+    ];
+
+    templatesDiv.innerHTML = ''; // Clear previous templates
+    templates.forEach(template => {
+        const button = document.createElement('button');
+        button.textContent = template.description;
+        button.addEventListener('click', () => {
+            // Pre-fill the task input with the template details
+            document.getElementById('taskInput').value = `add task ${template.description} category ${template.category}`;
+            templatesDiv.innerHTML = ''; // Clear templates after selection
+        });
+        templatesDiv.appendChild(button);
+    });
+}
+
+// Function to parse task input from user
+function parseTaskInput(input) {
+    let details = {
+        description: '',
+        category: 'General',
+        subCategory: '',
+        dueDate: '',
+        priority: 'Normal',
+        time: ''
+    };
+
+    // Remove "add task" or "create task" from the input
+    input = input.replace('add task', '').replace('create task', '').trim();
+
+    // Extract category if specified (e.g., "category work")
+    let categoryMatch = input.match(/category (\w+)/);
+    if (categoryMatch) {
+        details.category = categoryMatch[1];
+        input = input.replace(/category \w+/, '').trim();
+    }
+
+    // Extract due date if specified (e.g., "due tomorrow" or "due 2025-02-16")
+    let dueMatch = input.match(/due ([\w\-\/]+)/);
+    if (dueMatch) {
+        details.dueDate = dueMatch[1];
+        input = input.replace(/due [\w\-\/]+/, '').trim();
+    }
+
+    // Extract priority if specified (e.g., "priority high")
+    let priorityMatch = input.match(/priority (\w+)/);
+    if (priorityMatch) {
+        details.priority = priorityMatch[1];
+        input = input.replace(/priority \w+/, '').trim();
+    }
+
+    // The remaining input is considered the description
+    details.description = input.trim();
+    return details;
+}
+
+// Function to add a new task
+function addTask(description, category, subCategory, dueDate, priority, time) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const newTask = {
+        description,
+        category,
+        subCategory,
+        dueDate,
+        priority,
+        time,
+        done: false
+    };
+    tasks.push(newTask);
+    localStorage.setItem('tasks', JSON.stringify(tasks));
+    displayTasks();
+    updateProgressBar();
+}
+
+// Function to delete a task by index
+function deleteTask(taskIndex) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    if (taskIndex >= 0 && taskIndex < tasks.length) {
+        tasks.splice(taskIndex, 1);
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        displayTasks();
+        updateProgressBar();
+    }
+}
+
+// Function to mark a task as done by index
+function markTaskAsDone(taskIndex) {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    if (taskIndex >= 0 && taskIndex < tasks.length) {
+        tasks[taskIndex].done = true;
+        localStorage.setItem('tasks', JSON.stringify(tasks));
+        displayTasks();
+        updateProgressBar();
+    }
+}
+
+// Function to display tasks, optionally filtering by category or using a provided tasks array
+function displayTasks(filterCategory = 'All', tasksArray = null) {
+    const taskList = document.getElementById('taskList');
+    if (!taskList) return;
+    taskList.innerHTML = '';
+    let tasks = tasksArray || JSON.parse(localStorage.getItem('tasks')) || [];
+    if (filterCategory && filterCategory !== 'All') {
+        tasks = tasks.filter(task => task.category.toLowerCase() === filterCategory.toLowerCase());
+    }
+    tasks.forEach((task, index) => {
+        const li = document.createElement('li');
+        li.textContent = `${index + 1}. [${task.category}] ${task.description} - ${task.done ? 'Done' : 'Pending'}`;
+        // Add delete button for each task
+        const deleteButton = document.createElement('button');
+        deleteButton.textContent = 'Delete';
+        deleteButton.addEventListener('click', () => {
+            deleteTask(index);
+        });
+        li.appendChild(deleteButton);
+        // Add mark as done button if task is not done
+        if (!task.done) {
+            const doneButton = document.createElement('button');
+            doneButton.textContent = 'Mark as Done';
+            doneButton.addEventListener('click', () => {
+                markTaskAsDone(index);
+            });
+            li.appendChild(doneButton);
+        }
+        taskList.appendChild(li);
+    });
+}
+
+// Function to update the progress bar based on completed tasks
+function updateProgressBar() {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const total = tasks.length;
+    const completed = tasks.filter(task => task.done).length;
+    const progress = total === 0 ? 0 : (completed / total) * 100;
+    const progressDiv = document.getElementById('progress');
+    if (progressDiv) {
+        progressDiv.style.width = progress + '%';
+    }
+}
+
+// Function to sort tasks based on selected criteria
+function sortTasks(tasks, sortBy) {
+    let sortedTasks = [...tasks];
+    switch (sortBy) {
+        case 'dueDateAsc':
+            sortedTasks.sort((a, b) => new Date(a.dueDate) - new Date(b.dueDate));
+            break;
+        case 'dueDateDesc':
+            sortedTasks.sort((a, b) => new Date(b.dueDate) - new Date(a.dueDate));
+            break;
+        case 'priority':
+            // Assuming priority values: high, normal, low
+            const priorityOrder = { 'high': 1, 'normal': 2, 'low': 3 };
+            sortedTasks.sort((a, b) => (priorityOrder[a.priority.toLowerCase()] || 4) - (priorityOrder[b.priority.toLowerCase()] || 4));
+            break;
+        case 'category':
+            sortedTasks.sort((a, b) => a.category.localeCompare(b.category));
+            break;
+        default:
+            break;
+    }
+    return sortedTasks;
+}
+
+// Function to export tasks as a JSON file
+function exportTasks() {
+    const tasks = JSON.parse(localStorage.getItem('tasks')) || [];
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(tasks, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", "tasks.json");
+    document.body.appendChild(downloadAnchor); // Required for Firefox
+    downloadAnchor.click();
+    downloadAnchor.remove();
+}
+
+// Function to show available voice commands
+function showVoiceCommandGuide() {
+    const guide = `
+Supported Voice Commands:
+- "add task [task description] category [category] due [date] priority [level]"
+- "delete task [task number]"
+- "mark as done [task number]"
+    `;
+    alert(guide);
+}
+
 // Initialize the app
 document.addEventListener('DOMContentLoaded', function () {
     console.log("Initializing app");
