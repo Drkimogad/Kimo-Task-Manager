@@ -121,7 +121,7 @@ button:hover {
     color: #36454F;
 }
 
-/* NEW: Task Summary Section */
+/* Task Summary Section */
 .task-summary {
     display: flex;
     justify-content: space-between;
@@ -150,7 +150,7 @@ button:hover {
     color: #FFA500;
 }
 
-/* Task List */
+/* Task Container */
 .task-container {
     margin-top: 2rem;
     background: white;
@@ -159,6 +159,23 @@ button:hover {
     border-radius: 8px;
 }
 
+/* Task Controls (Filters & Sorting) */
+.task-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+}
+
+.task-filters,
+.task-sorting {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Task List */
 .task-item {
     display: flex;
     align-items: center;
@@ -212,49 +229,12 @@ button:hover {
     background-color: #1976D2;
 }
 
-/* NEW: Task Filters */
-.task-filters {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.task-filters label {
-    color: #36454F;
-}
-
-.task-filters select,
-.task-filters input {
-    padding: 0.5rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
-}
-
-.task-filters button {
-    padding: 0.5rem 1rem;
-}
-
-/* NEW: Today's Tasks Section */
-.todays-tasks {
-    margin-top: 2rem;
-    background: white;
-    padding: 1rem;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-.todays-tasks h2 {
-    color: #36454F;
-    margin-bottom: 1rem;
-}
-
 /* Chat Container */
 .chat-container {
     margin-top: 2rem;
 }
 
+/* Chat Box */
 #chatBox {
     height: 150px;
     overflow-y: auto;
@@ -264,17 +244,23 @@ button:hover {
     background-color: white;
 }
 
+/* Task Input Form in Chat Container */
+/* Label on its own line; input & buttons aligned on one row */
 #taskInputForm {
     display: flex;
-    flex-direction: column;
-    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 #taskInputForm label {
+    flex-basis: 100%;
     color: #36454F;
 }
 
 #taskInputForm input {
+    flex: 1;
+    min-width: 150px;
     padding: 0.5rem;
     border: 1px solid #ccc;
     border-radius: 4px;
@@ -282,31 +268,20 @@ button:hover {
 }
 
 #taskInputForm button {
+    padding: 0.5rem 1rem;
+    white-space: nowrap;
+}
+
+/* Task Templates */
+#taskTemplates {
+    flex-basis: 100%;
+}
+
+/* Voice Controls (already styled on the same line) */
+.voice-controls {
+    display: flex;
+    gap: 0.5rem;
     margin-top: 0.5rem;
-}
-
-/* NEW: Voice Command Guide */
-.voice-command-guide {
-    background-color: white;
-    padding: 1rem;
-    margin-top: 1rem;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-    border-radius: 8px;
-}
-
-.voice-command-guide h3 {
-    color: #36454F;
-    margin-bottom: 1rem;
-}
-
-.voice-command-guide ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.voice-command-guide li {
-    margin-bottom: 0.5rem;
-    color: #36454F;
 }
 
 /* Progress Bar */
@@ -321,6 +296,11 @@ button:hover {
     height: 10px;
     background-color: #FFA500;
     border-radius: 4px;
+}
+
+/* Export Button Spacing */
+#exportTasks {
+    margin: 2rem 0;  /* Adds space between export button and footer */
 }
 
 /* Dark Mode */
@@ -376,7 +356,7 @@ footer {
     bottom: 0;
 }
 
-/* Responsive Design */
+/* Responsive Design for Mobile */
 @media (max-width: 600px) {
     .header-container {
         flex-direction: column;
@@ -406,7 +386,23 @@ footer {
         flex-direction: column;
     }
 
-    .task-filters {
+    .task-filters,
+    .task-sorting {
         flex-direction: column;
+        align-items: flex-start;
+    }
+}
+
+/* Responsive Design for Desktop */
+@media (min-width: 1024px) {
+    body {
+        font-size: 14px; /* Slightly reduced font size for desktop */
+    }
+    .dashboard-container {
+        max-width: 900px;
+        padding: 2rem 3rem;
+    }
+    .auth-container {
+        max-width: 500px;
     }
 }
