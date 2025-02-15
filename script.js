@@ -9,6 +9,15 @@ if (typeof dcodeIO !== 'undefined' && dcodeIO.bcrypt) {
 }
 const saltRounds = 10;
 
+// ---------- NEW: Interaction History Tracking Functions ----------
+// This function updates interaction history in localStorage based on task category.
+function updateInteractionHistory(category) {
+    let history = JSON.parse(localStorage.getItem('interactionHistory')) || {};
+    history[category] = (history[category] || 0) + 1;
+    localStorage.setItem('interactionHistory', JSON.stringify(history));
+}
+// -----------------------------------------------------------------------
+
 // Helper functions for login state
 function isLoggedIn() {
     return localStorage.getItem('loggedIn') === 'true';
@@ -194,6 +203,36 @@ function renderTaskSummary() {
     `;
 }
 
+// ---------- NEW: Humanized Chat - Typing Indicator and Delayed Response ----------
+// Show a typing indicator in the chat box
+function showTypingIndicator() {
+    const chatBox = document.getElementById('chatBox');
+    const typingIndicator = document.createElement('div');
+    typingIndicator.id = 'typingIndicator';
+    typingIndicator.textContent = 'Bot is typing...';
+    chatBox.appendChild(typingIndicator);
+    chatBox.scrollTop = chatBox.scrollHeight;
+}
+
+// Remove the typing indicator from the chat box
+function removeTypingIndicator() {
+    const indicator = document.getElementById('typingIndicator');
+    if (indicator) {
+        indicator.remove();
+    }
+}
+
+// Bot response with a delay to simulate natural typing
+function botRespond(message) {
+    showTypingIndicator();
+    setTimeout(function() {
+        removeTypingIndicator();
+        updateChatBox(message);
+        speak(message);
+    }, 1000); // 1 second delay
+}
+// -------------------------------------------------------------------------------------
+
 // Render Dashboard
 function showDashboard() {
     if (!isLoggedIn()) {
@@ -336,48 +375,44 @@ function startVoiceRecognition() {
     recognition.start();
 }
 
-// Speak a message
+// Speak a message (kept as is)
 function speak(message) {
     const speech = new SpeechSynthesisUtterance(message);
     window.speechSynthesis.speak(speech);
 }
 
-// Handle user input (voice or text)
+// ---------- Updated: Handle user input using botRespond for delayed responses ----------
+// Modified to use botRespond() for a more humanized experience.
 function handleUserInput(input) {
     console.log(`Handling user input: ${input}`);
     if (input.includes('add task') || input.includes('create task')) {
         const taskDetails = parseTaskInput(input);
         if (taskDetails.description) {
             addTask(taskDetails.description, taskDetails.category, taskDetails.subCategory, taskDetails.dueDate, taskDetails.priority, taskDetails.time);
-            updateChatBox(`Task "${taskDetails.description}" added.`);
-            speak(`Task "${taskDetails.description}" added.`);
+            // Update interaction history for adaptive recommendations
+            updateInteractionHistory(taskDetails.category);
+            botRespond(`Task "${taskDetails.description}" added.`);
         } else {
-            updateChatBox('Please specify a task.');
-            speak('Please specify a task.');
+            botRespond('Please specify a task.');
         }
     } else if (input.includes('delete task')) {
         const taskId = parseInt(input.replace('delete task', '').trim());
         if (taskId && !isNaN(taskId)) {
             deleteTask(taskId - 1); // Assuming task IDs start from 1
-            updateChatBox(`Task ${taskId} deleted.`);
-            speak(`Task ${taskId} deleted.`);
+            botRespond(`Task ${taskId} deleted.`);
         } else {
-            updateChatBox('Please specify a valid task ID to delete.');
-            speak('Please specify a valid task ID to delete.');
+            botRespond('Please specify a valid task ID to delete.');
         }
     } else if (input.includes('mark as done')) {
         const taskId = parseInt(input.replace('mark task', '').replace('as done', '').trim());
         if (taskId && !isNaN(taskId)) {
             markTaskAsDone(taskId - 1);
-            updateChatBox(`Task ${taskId} marked as done.`);
-            speak(`Task ${taskId} marked as done.`);
+            botRespond(`Task ${taskId} marked as done.`);
         } else {
-            updateChatBox('Please specify a valid task ID to mark as done.');
-            speak('Please specify a valid task ID to mark as done.');
+            botRespond('Please specify a valid task ID to mark as done.');
         }
     } else {
-        updateChatBox('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
-        speak('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
+        botRespond('Sorry, I didn\'t understand that. Try "add task", "delete task", or "mark as done".');
     }
 }
 
@@ -391,17 +426,24 @@ function updateChatBox(message) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-// ---------- Added Missing Functions ----------
+// ---------- Added Missing Functions with Adaptive Features ----------
 
-// Function to show task templates
+// Function to show task templates with adaptive recommendations
 function showTaskTemplates() {
     const templatesDiv = document.getElementById('taskTemplates');
-    const templates = [
+    let templates = [
         { description: "Buy groceries", category: "Shopping" },
         { description: "Finish report", category: "Work" },
         { description: "Go for a run", category: "Exercise" },
         { description: "Call mom", category: "Personal" }
     ];
+
+    // ---------- NEW: Adaptive Recommendation - Reorder templates based on interaction history ----------
+    let history = JSON.parse(localStorage.getItem('interactionHistory')) || {};
+    templates.sort((a, b) => {
+        return (history[b.category] || 0) - (history[a.category] || 0);
+    });
+    // -----------------------------------------------------------------------------------------
 
     templatesDiv.innerHTML = ''; // Clear previous templates
     templates.forEach(template => {
@@ -472,6 +514,7 @@ function addTask(description, category, subCategory, dueDate, priority, time) {
     localStorage.setItem('tasks', JSON.stringify(tasks));
     displayTasks();
     updateProgressBar();
+    // Interaction history update is done in handleUserInput
 }
 
 // Function to delete a task by index
@@ -507,6 +550,17 @@ function displayTasks(filterCategory = 'All', tasksArray = null) {
     }
     tasks.forEach((task, index) => {
         const li = document.createElement('li');
+        
+        // ---------- NEW: Overdue task detection and styling ----------
+        if (task.dueDate) {
+            const dueDate = new Date(task.dueDate);
+            const today = new Date();
+            if (dueDate < today && !task.done) {
+                li.classList.add('overdue');
+            }
+        }
+        // ----------------------------------------------------------------
+
         li.textContent = `${index + 1}. [${task.category}] ${task.description} - ${task.done ? 'Done' : 'Pending'}`;
         // Add delete button for each task
         const deleteButton = document.createElement('button');
@@ -526,21 +580,6 @@ function displayTasks(filterCategory = 'All', tasksArray = null) {
         }
         taskList.appendChild(li);
     });
-    
-    // Check if task is overdue
-    if (task.dueDate) {
-        const dueDate = new Date(task.dueDate);
-        const today = new Date();
-        if (dueDate < today && !task.done) {
-            li.classList.add('overdue');
-        }
-    }
-    
-    li.textContent = `${index + 1}. [${task.category}] ${task.description} - ${task.done ? 'Done' : 'Pending'}`;
-    // ... (rest of your code for adding buttons)
-    taskList.appendChild(li);
-});
-
 }
 
 // Function to update the progress bar based on completed tasks
