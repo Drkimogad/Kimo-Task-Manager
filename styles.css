@@ -356,7 +356,7 @@ footer {
     bottom: 0;
 }
 
-/* Responsive Design for Mobile */
+/* --- Phone Responsive Design (max-width: 600px) --- */
 @media (max-width: 600px) {
     .header-container {
         flex-direction: column;
@@ -393,16 +393,17 @@ footer {
     }
 }
 
-/* Responsive Design for Desktop */
+/* --- Desktop Responsive Design (min-width: 1024px) --- */
 @media (min-width: 1024px) {
     body {
-        font-size: 14px; /* Slightly reduced font size for desktop */
+        font-size: 13px;  /* Scale down font size for desktop */
     }
     .dashboard-container {
-        max-width: 900px;
+        max-width: 850px;
         padding: 2rem 3rem;
     }
     .auth-container {
-        max-width: 500px;
+        max-width: 450px;
     }
+    /* You can further tweak margins/paddings here if needed */
 }
