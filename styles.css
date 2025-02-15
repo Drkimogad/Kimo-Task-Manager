@@ -408,14 +408,15 @@ footer {
 /* --- Desktop Responsive Design (min-width: 1024px) --- */
 @media (min-width: 1024px) {
     body {
-        font-size: 10px;  /* Scaled down by 20% from 13px */
+        font-size: 7px;  /* Scaled down further by 30% from 10px */
     }
     .dashboard-container {
-        max-width: 680px; /* Reduced by 20% from 850px */
-        padding: 1.6rem 2.4rem; /* Reduced by 20% from 2rem 3rem */
+        max-width: 476px; /* Scaled down further by 30% from 680px */    
+        padding: 1.12rem 1.68rem; /* Scaled down further by 30% from 1.6rem 2.4rem */
     }
     .auth-container {
-        max-width: 360px; /* Reduced by 20% from 450px */
+        max-width: 252px; /* Scaled down further by 30% from 360px */
     }
-    /* You can further tweak margins/paddings here if needed */
+    /* Further tweaks if needed */
 }
+
